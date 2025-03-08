@@ -4,8 +4,17 @@ Copyright © 2025 NAME HERE Aito Nakajima
 package cmd
 
 import (
+	"fmt"
+
+	"github.com/charmbracelet/lipgloss"
 	"github.com/gmskazi/pdfmergecrypt/cmd/utils"
 	"github.com/spf13/cobra"
+)
+
+var (
+	infoStyle  = lipgloss.NewStyle().PaddingLeft(1).Foreground(lipgloss.Color("#5dd2fc")).Bold(true)
+	errorStyle = lipgloss.NewStyle().PaddingLeft(1).Foreground(lipgloss.Color("#ba0b0b")).Bold(true)
+	name       string
 )
 
 // mergeCmd represents the merge command
@@ -14,12 +23,41 @@ var mergeCmd = &cobra.Command{
 	Short: "Merge PDFs together.",
 	Long:  `This is a tool to merge PDFs together.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		utils.Hello()
+		dir, err := utils.GetCurrentWorkingDir()
+		if err != nil {
+			fmt.Println(errorStyle.Render(err.Error()))
+			return
+		}
+
+		pdfs, err := utils.GetPdfFilesFromDir(dir)
+		if err != nil {
+			fmt.Println(errorStyle.Render(err.Error()))
+			return
+		}
+
+		name, err := cmd.Flags().GetString("name")
+		if err != nil {
+			fmt.Println(errorStyle.Render(err.Error()))
+			return
+		}
+
+		name = utils.PdfExtension(name)
+
+		err = utils.MergePdfs(pdfs, name)
+		if err != nil {
+			fmt.Println(errorStyle.Render(err.Error()))
+			return
+		}
+
+		complete := fmt.Sprintf("PDF files merged successfully to: %s/%s", dir, name)
+		fmt.Println(infoStyle.Render(complete))
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(mergeCmd)
+
+	mergeCmd.Flags().StringVarP(&name, "name", "n", "merged_output", "Custom name for the merged PDF files")
 
 	// Here you will define your flags and configuration settings.
 
