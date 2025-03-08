@@ -4,11 +4,13 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/pdfcpu/pdfcpu/pkg/api"
 )
 
+// TODO: Seperate directory and pdf functions into seperate packages and use structs for encapsulation
 func GetCurrentWorkingDir() (string, error) {
 	dir, err := os.Getwd()
 	if err != nil {
@@ -72,4 +74,12 @@ func MergePdfs(pdfs []string, outputPdf string) error {
 	}
 
 	return nil
+}
+
+func AddFullPathToPdfs(dir string, pdfs []string) []string {
+	var fullPaths []string
+	for _, pdf := range pdfs {
+		fullPaths = append(fullPaths, filepath.Join(dir, pdf))
+	}
+	return fullPaths
 }

@@ -5,8 +5,11 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 
+	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/gmskazi/pdfmergecrypt/cmd/ui/multiSelect"
 	"github.com/gmskazi/pdfmergecrypt/cmd/utils"
 	"github.com/spf13/cobra"
 )
@@ -35,22 +38,45 @@ var mergeCmd = &cobra.Command{
 			return
 		}
 
-		name, err := cmd.Flags().GetString("name")
-		if err != nil {
-			fmt.Println(errorStyle.Render(err.Error()))
-			return
+		for {
+			p := tea.NewProgram(multiSelect.MultiSelectModel(pdfs, dir))
+			result, err := p.Run()
+			if err != nil {
+				fmt.Println(errorStyle.Render(err.Error()))
+				return
+			}
+
+			model := result.(multiSelect.Tmodel)
+			if model.Quit {
+				os.Exit(0)
+			}
+			selectedPdfs := model.GetSelectedPDFs()
+
+			if len(selectedPdfs) <= 1 {
+				continue
+			}
+
+			pdfWithFullPath := utils.AddFullPathToPdfs(dir, pdfs)
+
+			name, err := cmd.Flags().GetString("name")
+			if err != nil {
+				fmt.Println(errorStyle.Render(err.Error()))
+				return
+			}
+
+			name = utils.PdfExtension(name)
+
+			err = utils.MergePdfs(pdfWithFullPath, name)
+			if err != nil {
+				fmt.Println(errorStyle.Render(err.Error()))
+				return
+			}
+
+			complete := fmt.Sprintf("PDF files merged successfully to: %s/%s", dir, name)
+			fmt.Println(infoStyle.Render(complete))
+
+			break
 		}
-
-		name = utils.PdfExtension(name)
-
-		err = utils.MergePdfs(pdfs, name)
-		if err != nil {
-			fmt.Println(errorStyle.Render(err.Error()))
-			return
-		}
-
-		complete := fmt.Sprintf("PDF files merged successfully to: %s/%s", dir, name)
-		fmt.Println(infoStyle.Render(complete))
 	},
 }
 
