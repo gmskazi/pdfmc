@@ -11,7 +11,7 @@ import (
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "pdfmergecrypt",
+	Use:   "pdfmc",
 	Short: "A PDF Merge and Encrypt tool.",
 	Long:  `This is a tool to merge and encrypt PDFs.`,
 	// Uncomment the following line if your bare application

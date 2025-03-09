@@ -8,6 +8,14 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
+const logo = `
+ __  __                  
+|  \/  |___ _ _ __ _ ___ 
+| |\/| / -_) '_/ _` + "`" + ` / -_)
+|_|  |_\___|_| \__, \___|
+               |___/     
+`
+
 var (
 	defaultStyle  = lipgloss.NewStyle().PaddingLeft(1).Foreground(lipgloss.Color("#5dd2fc")).Bold(true)
 	focusedStyle  = lipgloss.NewStyle().PaddingLeft(1).Foreground(lipgloss.Color("#FCBD5F")).Bold(true)
@@ -80,6 +88,8 @@ func (m Tmodel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m Tmodel) View() string {
 	var b strings.Builder
+	b.WriteString(defaultStyle.Render(logo))
+	fmt.Fprint(&b, "\n\n")
 	b.WriteString(defaultStyle.Render("Which PDFs do you want to merge together?"))
 	fmt.Fprint(&b, "\n")
 	b.WriteString(helpStyle.Render("Select with Space or 'x'"))
