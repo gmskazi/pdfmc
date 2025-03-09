@@ -1,9 +1,11 @@
-package utils
+package pdf
 
 import (
+	"fmt"
 	"os"
 	"testing"
 
+	"github.com/gmskazi/pdfmergecrypt/cmd/utils"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -47,7 +49,9 @@ func TestMergedPdfs(t *testing.T) {
 	err = createValidPDF(inputFile2)
 	assert.NoError(t, err)
 
-	err = MergePdfs([]string{inputFile1, inputFile2}, outputfile)
+	fileUtils := utils.NewFileUtils()
+	pdfProcssor := NewPDFProcessor(fileUtils)
+	err = pdfProcssor.MergePdfs([]string{inputFile1, inputFile2}, outputfile)
 	assert.NoError(t, err)
 
 	_, err = os.Stat(outputfile)
@@ -108,9 +112,13 @@ func TestValidateInputFiles(t *testing.T) {
 				tt.setup(tempDir)
 			}
 
-			pdfs, _ := GetPdfFilesFromDir(tempDir)
+			fileUtils := utils.NewFileUtils()
+			pdfProcessor := NewPDFProcessor(fileUtils)
 
-			err := validateInputFiles(pdfs)
+			pdfs := fileUtils.GetPdfFilesFromDir(tempDir)
+			fmt.Println(pdfs)
+
+			err := pdfProcessor.validateInputFiles(pdfs)
 
 			if tt.expectedErr != "" {
 				assert.Error(t, err)
@@ -125,20 +133,11 @@ func TestValidateInputFiles(t *testing.T) {
 
 func TestPdfExtension(t *testing.T) {
 	expected := "testing.pdf"
-	actual := PdfExtension("testing")
+	fileUtils := utils.NewFileUtils()
+	pdfProcessor := NewPDFProcessor(fileUtils)
+	actual := pdfProcessor.PdfExtension("testing")
 
 	if actual != expected {
 		t.Errorf("Expected: %s got %s", expected, actual)
 	}
-}
-
-func TestGetCurrentWorkingDir(t *testing.T) {
-	expectedDir, err := os.Getwd()
-	if err != nil {
-		t.Fatalf("failed to get current working dir: %v", err)
-	}
-
-	actualDir, err := GetCurrentWorkingDir()
-	assert.NoError(t, err)
-	assert.Equal(t, expectedDir, actualDir)
 }
