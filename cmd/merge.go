@@ -9,6 +9,7 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/gmskazi/pdfmergecrypt/cmd/pdf"
 	"github.com/gmskazi/pdfmergecrypt/cmd/ui/multiSelect"
 	"github.com/gmskazi/pdfmergecrypt/cmd/utils"
 	"github.com/spf13/cobra"
@@ -26,17 +27,15 @@ var mergeCmd = &cobra.Command{
 	Short: "Merge PDFs together.",
 	Long:  `This is a tool to merge PDFs together.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		dir, err := utils.GetCurrentWorkingDir()
+		fileUtils := utils.NewFileUtils()
+
+		dir, err := fileUtils.GetCurrentWorkingDir()
 		if err != nil {
 			fmt.Println(errorStyle.Render(err.Error()))
 			return
 		}
 
-		pdfs, err := utils.GetPdfFilesFromDir(dir)
-		if err != nil {
-			fmt.Println(errorStyle.Render(err.Error()))
-			return
-		}
+		pdfs := fileUtils.GetPdfFilesFromDir(dir)
 
 		for {
 			p := tea.NewProgram(multiSelect.MultiSelectModel(pdfs, dir))
@@ -56,7 +55,7 @@ var mergeCmd = &cobra.Command{
 				continue
 			}
 
-			pdfWithFullPath := utils.AddFullPathToPdfs(dir, pdfs)
+			pdfWithFullPath := fileUtils.AddFullPathToPdfs(dir, pdfs)
 
 			name, err := cmd.Flags().GetString("name")
 			if err != nil {
@@ -64,9 +63,11 @@ var mergeCmd = &cobra.Command{
 				return
 			}
 
-			name = utils.PdfExtension(name)
+			pdfProcessor := pdf.NewPDFProcessor(fileUtils)
 
-			err = utils.MergePdfs(pdfWithFullPath, name)
+			name = pdfProcessor.PdfExtension(name)
+
+			err = pdfProcessor.MergePdfs(pdfWithFullPath, name)
 			if err != nil {
 				fmt.Println(errorStyle.Render(err.Error()))
 				return
