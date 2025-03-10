@@ -16,9 +16,10 @@ import (
 )
 
 var (
-	infoStyle  = lipgloss.NewStyle().PaddingLeft(1).Foreground(lipgloss.Color("#5dd2fc")).Bold(true)
-	errorStyle = lipgloss.NewStyle().PaddingLeft(1).Foreground(lipgloss.Color("#ba0b0b")).Bold(true)
-	name       string
+	infoStyle    = lipgloss.NewStyle().PaddingLeft(1).Foreground(lipgloss.Color("#5dd2fc")).Bold(true)
+	focusedStyle = lipgloss.NewStyle().PaddingLeft(1).Foreground(lipgloss.Color("#FCBD5F")).Bold(true)
+	errorStyle   = lipgloss.NewStyle().PaddingLeft(1).Foreground(lipgloss.Color("#ba0b0b")).Bold(true)
+	name         string
 )
 
 // mergeCmd represents the merge command
@@ -38,7 +39,7 @@ var mergeCmd = &cobra.Command{
 		pdfs := fileUtils.GetPdfFilesFromDir(dir)
 
 		for {
-			p := tea.NewProgram(multiSelect.MultiSelectModel(pdfs, dir))
+			p := tea.NewProgram(multiSelect.MultiSelectModel(pdfs, dir, "merge"))
 			result, err := p.Run()
 			if err != nil {
 				fmt.Println(errorStyle.Render(err.Error()))

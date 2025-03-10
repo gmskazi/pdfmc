@@ -8,7 +8,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-const logo = `
+const logoMerge = `
  __  __                  
 |  \/  |___ _ _ __ _ ___ 
 | |\/| / -_) '_/ _` + "`" + ` / -_)
@@ -16,11 +16,20 @@ const logo = `
                |___/     
 `
 
+const logoEncrypt = `
+ ___                       _   
+| __|_ _  __ _ _ _  _ _ __| |_ 
+| _|| ' \/ _| '_| || | '_ \  _|
+|___|_||_\__|_|  \_, | .__/\__|
+                 |__/|_|       
+`
+
 var (
 	defaultStyle  = lipgloss.NewStyle().PaddingLeft(1).Foreground(lipgloss.Color("#5dd2fc")).Bold(true)
 	focusedStyle  = lipgloss.NewStyle().PaddingLeft(1).Foreground(lipgloss.Color("#FCBD5F")).Bold(true)
 	selectedStyle = lipgloss.NewStyle().PaddingLeft(1).Foreground(lipgloss.Color("#FC895F")).Bold(true)
 	helpStyle     = lipgloss.NewStyle().PaddingLeft(1).Foreground(lipgloss.Color("#F1F0E9")).Bold(true)
+	errorStyle    = lipgloss.NewStyle().PaddingLeft(1).Foreground(lipgloss.Color("#ba0b0b")).Bold(true)
 )
 
 type Tmodel struct {
@@ -28,14 +37,16 @@ type Tmodel struct {
 	directory string
 	cursor    int
 	selected  map[int]struct{}
+	logo      string
 	Quit      bool
 }
 
-func MultiSelectModel(pdfs []string, directory string) Tmodel {
+func MultiSelectModel(pdfs []string, directory string, logo string) Tmodel {
 	return Tmodel{
 		pdfs:      pdfs,
 		directory: directory,
 		selected:  make(map[int]struct{}),
+		logo:      logo,
 	}
 }
 
@@ -88,9 +99,28 @@ func (m Tmodel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m Tmodel) View() string {
 	var b strings.Builder
-	b.WriteString(defaultStyle.Render(logo))
-	fmt.Fprint(&b, "\n\n")
-	b.WriteString(defaultStyle.Render("Which PDFs do you want to merge together?"))
+	switch m.logo {
+	case "merge":
+		b.WriteString(defaultStyle.Render(logoMerge))
+		if len(m.pdfs) <= 1 {
+			fmt.Fprint(&b, "\n\n")
+			b.WriteString(errorStyle.Render("Please provide more than one PDF files. Press 'esc' to exit."))
+			return b.String()
+		}
+		fmt.Fprint(&b, "\n\n")
+		b.WriteString(defaultStyle.Render("Which PDFs do you want to merge together?"))
+
+	case "encrypt":
+		b.WriteString(defaultStyle.Render(logoEncrypt))
+		if len(m.pdfs) == 0 {
+			fmt.Fprint(&b, "\n\n")
+			b.WriteString(errorStyle.Render("No PDF files found. Press 'esc' to exit."))
+			return b.String()
+		}
+		fmt.Fprint(&b, "\n\n")
+		b.WriteString(defaultStyle.Render("Which PDFs do you want to Encrypt?"))
+	}
+
 	fmt.Fprint(&b, "\n")
 	b.WriteString(helpStyle.Render("Select with Space or 'x'"))
 	fmt.Fprint(&b, "\n\n")
