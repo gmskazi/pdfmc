@@ -2,11 +2,9 @@ name: CI
 
 on:
   push:
-    branches:
-      - "*"
   pull_request:
     branches:
-      - "*"
+      - "main"
 
 jobs:
   lint:
@@ -15,19 +13,19 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Set up Go
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@v4
         with:
           go-version: "1.24"
+          cache: true
 
       - name: Install dependencies
         run: |
-          go mod tidy
           go mod download
-          go install honnef.co/go/tools/cmd/staticcheck@latest
-          go install github.com/securego/gosec/v2/cmd/gosec@latest
+          go run honnef.co/go/tools/cmd/staticcheck@latest
+          go run github.com/securego/gosec/v2/cmd/gosec@latest
 
       - name: Run staticcheck
         run: staticcheck ./...
@@ -42,17 +40,15 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Set up Go
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@v4
         with:
           go-version: "1.24"
 
       - name: Install dependencies
-        run: |
-          go mod tidy
-          go mod download
+        run: go mod download
 
       - name: Run tests
         run: go test ./... -v
