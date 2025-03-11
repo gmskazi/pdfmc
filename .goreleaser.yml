@@ -12,6 +12,7 @@ builds:
       - -s -w
     flags:
       - -trimpath
+    binary: pdfmc
 
 release:
   github:
