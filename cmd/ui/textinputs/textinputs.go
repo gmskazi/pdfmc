@@ -11,12 +11,12 @@ import (
 
 var (
 	defaultStyle  = lipgloss.NewStyle().PaddingLeft(1).Foreground(lipgloss.Color("#5dd2fc")).Bold(true)
-	helpStyle     = lipgloss.NewStyle().PaddingLeft(1).Foreground(lipgloss.Color("#F1F0E9")).Bold(true)
 	focusedStyle  = lipgloss.NewStyle().PaddingLeft(1).Foreground(lipgloss.Color("#FCBD5F")).Bold(true)
 	errorStyle    = lipgloss.NewStyle().PaddingLeft(1).Foreground(lipgloss.Color("#ba0b0b")).Bold(true)
+	selectedStyle = lipgloss.NewStyle().PaddingLeft(1).Foreground(lipgloss.Color("#FC895F")).Bold(true)
 	noStyle       = lipgloss.NewStyle()
 	blurredStyle  = lipgloss.NewStyle().Foreground(lipgloss.Color("240"))
-	focusedButton = focusedStyle.Render("[ Submit ]")
+	focusedButton = selectedStyle.Render("[ Submit ]")
 	blurredButton = fmt.Sprintf("[ %s ]", blurredStyle.Render("Submit"))
 )
 
@@ -99,15 +99,15 @@ func (m Tmodel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				if i == m.focusIndex {
 					// set focus state
 					cmds[i] = m.inputs[i].Focus()
-					m.inputs[i].PromptStyle = focusedStyle
-					m.inputs[i].TextStyle = focusedStyle
+					m.inputs[i].PromptStyle = selectedStyle
+					m.inputs[i].TextStyle = selectedStyle
 					continue
 				}
 
 				if m.checkPasswords(m.inputs[0].Value(), m.inputs[1].Value()) {
 					m.inputs[i].Blur()
 					m.inputs[i].PromptStyle = noStyle
-					m.inputs[i].TextStyle = focusedStyle
+					m.inputs[i].TextStyle = selectedStyle
 				} else {
 					m.inputs[i].Blur()
 					m.inputs[i].PromptStyle = noStyle
@@ -150,10 +150,10 @@ func (m Tmodel) View() string {
 	}
 	fmt.Fprintf(&b, "\n\n%s\n\n", *button)
 
-	b.WriteString(helpStyle.Render("Press Enter on 'Submit' to continue"))
+	b.WriteString(focusedStyle.Render("Press Enter on 'Submit' to continue"))
 	fmt.Fprint(&b, "\n")
 
-	b.WriteString(helpStyle.Render("To Exit press 'ctrl+c' or 'esc'"))
+	b.WriteString(focusedStyle.Render("To Exit press 'ctrl+c' or 'esc'"))
 	fmt.Fprint(&b, "\n")
 
 	return b.String()

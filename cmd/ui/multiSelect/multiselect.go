@@ -28,7 +28,6 @@ var (
 	defaultStyle  = lipgloss.NewStyle().PaddingLeft(1).Foreground(lipgloss.Color("#5dd2fc")).Bold(true)
 	focusedStyle  = lipgloss.NewStyle().PaddingLeft(1).Foreground(lipgloss.Color("#FCBD5F")).Bold(true)
 	selectedStyle = lipgloss.NewStyle().PaddingLeft(1).Foreground(lipgloss.Color("#FC895F")).Bold(true)
-	helpStyle     = lipgloss.NewStyle().PaddingLeft(1).Foreground(lipgloss.Color("#F1F0E9")).Bold(true)
 	errorStyle    = lipgloss.NewStyle().PaddingLeft(1).Foreground(lipgloss.Color("#ba0b0b")).Bold(true)
 )
 
@@ -122,7 +121,7 @@ func (m Tmodel) View() string {
 	}
 
 	fmt.Fprint(&b, "\n")
-	b.WriteString(helpStyle.Render("Select with Space or 'x'"))
+	b.WriteString(focusedStyle.Render("Select with Space or 'x'"))
 	fmt.Fprint(&b, "\n\n")
 	b.WriteString(selectedStyle.Render("File location: ", m.directory))
 	fmt.Fprint(&b, "\n\n")
@@ -131,7 +130,7 @@ func (m Tmodel) View() string {
 		cursor := " "
 		if m.cursor == i {
 			cursor = focusedStyle.Render(">")
-			choice = focusedStyle.Render(choice)
+			// choice = focusedStyle.Render(choice)
 		}
 
 		checked := " "
@@ -145,7 +144,7 @@ func (m Tmodel) View() string {
 		b.WriteString(fmt.Sprintf("%s [%s] %s\n", cursor, checked, choice))
 	}
 
-	b.WriteString(helpStyle.Render("\nPress enter to confirm, esc to quit."))
+	b.WriteString(focusedStyle.Render("\nPress enter to confirm, esc to quit."))
 	fmt.Fprint(&b, "\n\n")
 
 	return b.String()
