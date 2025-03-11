@@ -1,4 +1,4 @@
-module github.com/gmskazi/pdfMergeCrypt
+module github.com/gmskazi/pdfmergecrypt
 
 go 1.24.0
 

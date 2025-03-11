@@ -8,7 +8,7 @@ to learn more about golang, cobra, bubbletea and lipgloss.
 ### Install
 
 ```bash
-go install github.com/gmskazi/pdfMergeCrypt@latest
+go install github.com/gmskazi/pdfmergecrypt@latest
 ```
 
 This installs a go binary that will automatically bind to your $GOPATH.
