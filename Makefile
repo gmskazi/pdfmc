@@ -7,7 +7,7 @@ build:
 	@echo "Building..."
 	
 	
-	@go build -o pdfmc .
+	@go build .
 
 # Run the application
 run:

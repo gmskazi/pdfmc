@@ -9,9 +9,9 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/gmskazi/pdfmergecrypt/cmd/pdf"
-	"github.com/gmskazi/pdfmergecrypt/cmd/ui/multiSelect"
-	"github.com/gmskazi/pdfmergecrypt/cmd/utils"
+	"github.com/gmskazi/pdfmc/cmd/pdf"
+	"github.com/gmskazi/pdfmc/cmd/ui/multiSelect"
+	"github.com/gmskazi/pdfmc/cmd/utils"
 	"github.com/spf13/cobra"
 )
 
