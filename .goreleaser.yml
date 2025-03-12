@@ -17,4 +17,4 @@ builds:
 release:
   github:
     owner: "gmskazi"
-    name: "pdfmergecrypt"
+    name: "pdfmc"

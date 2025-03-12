@@ -3,7 +3,7 @@ package pdf
 import (
 	"errors"
 
-	"github.com/gmskazi/pdfmergecrypt/cmd/utils"
+	"github.com/gmskazi/pdfmc/cmd/utils"
 	"github.com/pdfcpu/pdfcpu/pkg/api"
 )
 

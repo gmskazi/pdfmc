@@ -8,9 +8,9 @@ import (
 	"os"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/gmskazi/pdfmergecrypt/cmd/ui/multiSelect"
-	textInputs "github.com/gmskazi/pdfmergecrypt/cmd/ui/textinputs"
-	"github.com/gmskazi/pdfmergecrypt/cmd/utils"
+	"github.com/gmskazi/pdfmc/cmd/ui/multiSelect"
+	textInputs "github.com/gmskazi/pdfmc/cmd/ui/textinputs"
+	"github.com/gmskazi/pdfmc/cmd/utils"
 	"github.com/pdfcpu/pdfcpu/pkg/api"
 	"github.com/pdfcpu/pdfcpu/pkg/pdfcpu/model"
 	"github.com/spf13/cobra"

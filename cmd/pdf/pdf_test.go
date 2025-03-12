@@ -5,7 +5,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/gmskazi/pdfmergecrypt/cmd/utils"
+	"github.com/gmskazi/pdfmc/cmd/utils"
 	"github.com/stretchr/testify/assert"
 )
 
