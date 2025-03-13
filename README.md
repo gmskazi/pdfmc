@@ -51,7 +51,6 @@ pdfmc merge --name testname
 
 #### Encrypt PDFs
 
-<!-- TODO: Add a gif -->
 ![pdfmc encrypt](public/encrypt.gif)
 
 ```bash
