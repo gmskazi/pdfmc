@@ -130,7 +130,6 @@ func (m Tmodel) View() string {
 		cursor := " "
 		if m.cursor == i {
 			cursor = focusedStyle.Render(">")
-			// choice = focusedStyle.Render(choice)
 		}
 
 		checked := " "
