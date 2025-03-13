@@ -60,3 +60,7 @@ pdfmc encrypt
 You have the ability to choose which PDFs you would like to encrypt
 (including multiple files) and set a password, the encrypted files will have
 "encrypt-" at the beginning of the file saved in the same directory.
+
+### Contributing
+
+See [contributing](CONTRIBUTING.md).
