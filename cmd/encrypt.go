@@ -72,6 +72,8 @@ to quickly create a Cobra application.`,
 
 		conf := model.NewAESConfiguration(pword, pword, 256)
 
+		fmt.Println()
+
 		for _, pdf := range selectedPdfs {
 			encryptedPdfName := "encrypted-" + pdf
 			err := api.EncryptFile(pdf, encryptedPdfName, conf)
@@ -80,7 +82,7 @@ to quickly create a Cobra application.`,
 				return
 			}
 
-			fmt.Println(focusedStyle.Render("Encrypted files: ", encryptedPdfName))
+			fmt.Println(selectedStyle.Render("Encrypted files: ", encryptedPdfName))
 		}
 	},
 }
