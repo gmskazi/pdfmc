@@ -30,6 +30,7 @@ source ~/.zshrc
 
 #### Merge PDFs
 
+![pdfmc merge](public/merge.gif)
 Navigate to the directory where your PDFs live and run:
 
 ```bash
@@ -50,10 +51,12 @@ pdfmc merge --name testname
 
 #### Encrypt PDFs
 
+![pdfmc encrypt](public/encrypt.gif)
+
 ```bash
 pdfmc encrypt
 ```
 
 You have the ability to choose which PDFs you would like to encrypt
-(including multiple files) and the encrypted files will have "encrypt-" at the
-beginning of the file saved in the same directory.
+(including multiple files) and set a password, the encrypted files will have
+"encrypt-" at the beginning of the file saved in the same directory.
