@@ -33,8 +33,7 @@ source ~/.zshrc
 Run the below command in the terminal of your choice to install pdfmc.
 
 ```sh
-curl -L https://raw.githubusercontent.com/gmskazi/pdfmc/main/scripts/install.sh
-| sh
+curl -L https://raw.githubusercontent.com/gmskazi/pdfmc/main/scripts/install.sh | sh
 ```
 
 ### Uninstall using a script
@@ -42,8 +41,7 @@ curl -L https://raw.githubusercontent.com/gmskazi/pdfmc/main/scripts/install.sh
 Run the below command in the terminal of your choice to uninstall pdfmc.
 
 ```sh
-curl -L https://raw.githubusercontent.com/gmskazi/pdfmc/main/scripts/uninstall.sh
-| sh
+curl -L https://raw.githubusercontent.com/gmskazi/pdfmc/main/scripts/uninstall.sh | sh
 ```
 
 ## Run
