@@ -5,8 +5,6 @@ REPO="gmskazi/pdfmc"
 BIN_NAME="pdfmc"
 INSTALL_DIR="/usr/local/bin"
 TMP_DIR="$(mktemp -d 2>/dev/null || echo '/tmp/pdfmc_install_$$')"
-mkdir -p "$TMP_DIR"
-echo "TemDir: $TMP_DIR"
 
 # Ensure the script is running as root or with sudo
 if [ "$(id -u)" -ne 0 ]; then
@@ -33,6 +31,10 @@ else
     echo "Unsupported architecture: $ARCH"
     exit 1
 fi
+
+# Make the temp directory
+mkdir -p "$TMP_DIR"
+echo "TemDir: $TMP_DIR"
 
 # Fetch latest release tag from GitHub API
 LATEST_TAG=$(curl -s "https://api.github.com/repos/$REPO/releases/latest" | grep '"tag_name":' | cut -d '"' -f 4)
