@@ -1,4 +1,10 @@
 #!/bin/sh
+# Ensure the script is running as root or with sudo
+if [ "$(id -u)" -ne 0 ]; then
+    echo "This script must be run as root or with sudo."
+    exec sudo "$0" "$@"
+fi
+
 set -e
 
 REPO="gmskazi/pdfmc"
@@ -6,11 +12,9 @@ BIN_NAME="pdfmc"
 INSTALL_DIR="/usr/local/bin"
 TMP_DIR="$(mktemp -d 2>/dev/null || echo '/tmp/pdfmc_install_$$')"
 
-# Ensure the script is running as root or with sudo
-if [ "$(id -u)" -ne 0 ]; then
-    echo "This script must be run as root or with sudo."
-    exec sudo "$0" "$@"
-fi
+# Make the temp directory
+mkdir -p "$TMP_DIR"
+echo "TemDir: $TMP_DIR"
 
 # Detect OS and Architecture
 OS=$(uname -s | tr '[:upper:]' '[:lower:]')
@@ -31,10 +35,6 @@ else
     echo "Unsupported architecture: $ARCH"
     exit 1
 fi
-
-# Make the temp directory
-mkdir -p "$TMP_DIR"
-echo "TemDir: $TMP_DIR"
 
 # Fetch latest release tag from GitHub API
 LATEST_TAG=$(curl -s "https://api.github.com/repos/$REPO/releases/latest" | grep '"tag_name":' | cut -d '"' -f 4)
