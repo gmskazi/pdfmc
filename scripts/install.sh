@@ -4,7 +4,8 @@ set -e
 REPO="gmskazi/pdfmc"
 BIN_NAME="pdfmc"
 INSTALL_DIR="/usr/local/bin"
-TMP_DIR="$(mktemp -d)"
+TMP_DIR="$(mktemp -d 2>/dev/null || echo '/tmp/pdfmc_install_$$')"
+mkdir -p "$TMP_DIR"
 echo "TemDir: $TMP_DIR"
 
 # Ensure the script is running as root or with sudo
