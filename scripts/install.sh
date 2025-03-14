@@ -4,6 +4,7 @@ set -e
 REPO="gmskazi/pdfmc"
 BIN_NAME="pdfmc"
 INSTALL_DIR="/usr/local/bin"
+TMP_DIR="$(mktemp -d)"
 
 # Ensure the script is running as root or with sudo
 if [ "$(id -u)" -ne 0 ]; then
@@ -29,13 +30,30 @@ fi
 
 # Fetch latest release tag from GitHub API
 LATEST_TAG=$(curl -s "https://api.github.com/repos/$REPO/releases/latest" | grep '"tag_name":' | cut -d '"' -f 4)
+TAG_NUMBER=$(echo "$LATEST_TAG" | cut -c2-)
 
 # Construct download URL
-URL="https://github.com/$REPO/releases/download/$LATEST_TAG/${BIN_NAME}-${OS}-${ARCH}"
+URL="https://github.com/$REPO/releases/download/$LATEST_TAG/${BIN_NAME}_${TAG_NUMBER}_${OS}_${ARCH}.tar.gz"
+ZIP_FILE="${BIN_NAME}_${TAG_NUMBER}_${OS}_${ARCH}.tar.gz"
 
 # Download and install
 echo "Downloading $BIN_NAME $LATEST_TAG for $OS/$ARCH..."
-curl -L "$URL" -o "$INSTALL_DIR/$BIN_NAME"
+curl -L "$URL" -o "$TMP_DIR/$ZIP_FILE"
+
+echo "Extracting $ZIP_FILE..."
+tar -xzf "$TMP_DIR/$ZIP_FILE" -C "$TMP_DIR"
+
+echo "Installing $ZIP_FILE..."
+mv "$TMP_DIR/$BIN_NAME" "$INSTALL_DIR/$BIN_NAME"
 chmod +x "$INSTALL_DIR/$BIN_NAME"
 
-echo "$BIN_NAME installed successfully!"
+# Clean up
+rm -rf "$TMP_DIR"
+
+# TODO: Check if the file is installed
+
+if command -v "$BIN_NAME" >/dev/null 2>&1; then
+    echo "$BIN_NAME installed successfully!"
+else
+    echo "There was an issue installing $BIN_NAME"
+fi
