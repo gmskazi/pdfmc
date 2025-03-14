@@ -14,6 +14,10 @@ fi
 
 # Detect OS and Architecture
 OS=$(uname -s | tr '[:upper:]' '[:lower:]')
+if [ "$OS" != "darwin" ]; then
+    OS="linux"
+fi
+
 ARCH=$(uname -m)
 if [ "$ARCH" = "x86_64" ]; then
     ARCH="amd64"
@@ -49,8 +53,6 @@ chmod +x "$INSTALL_DIR/$BIN_NAME"
 
 # Clean up
 rm -rf "$TMP_DIR"
-
-# TODO: Check if the file is installed
 
 if command -v "$BIN_NAME" >/dev/null 2>&1; then
     echo "$BIN_NAME installed successfully!"
