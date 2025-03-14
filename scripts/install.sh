@@ -14,7 +14,6 @@ TMP_DIR="$(mktemp -d 2>/dev/null || echo '/tmp/pdfmc_install_$$')"
 
 # Make the temp directory
 mkdir -p "$TMP_DIR"
-echo "TemDir: $TMP_DIR"
 
 # Detect OS and Architecture
 OS=$(uname -s | tr '[:upper:]' '[:lower:]')
