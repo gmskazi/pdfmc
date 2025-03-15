@@ -10,8 +10,10 @@
 
 Pdfmc stands for PDF Merge Crypt.
 
-A simple PDF tool to merge and encrypt files, I'm creating this tool to learn more about golang, cobra, bubbletea and
-lipgloss.
+A simple PDF tool to merge and encrypt files, I've created this tool to learn more about golang,
+[cobra](https://github.com/spf13/cobra), [bubbletea](https://github.com/charmbracelet/bubbletea) and
+[lipgloss](https://github.com/charmbracelet/lipgloss), but after creating it, I've started using it and added it to my
+toolkit. Hoping to add more functionality to it when I have the time.
 
 ## Install
 
@@ -71,9 +73,13 @@ pdfmc merge
 
 You will receive a file "merged_output.pdf" that has all the PDFs combined into one files.
 
-#### Change the output file name
+#### Flags
 
-You have the ability to change the name of the output file by using the '--name' or '-n' flag.
+---
+
+Custom name for the merged PDF file (default "merged_output")
+
+'--name' or '-n' flag.
 
 ```bash
 pdfmc merge --name testname
