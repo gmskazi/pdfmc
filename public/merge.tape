@@ -87,7 +87,7 @@ Sleep 1s
 Enter
 
 Sleep 3s
-Type "ls -lh | grep merged_output.pdf"
+Type "ls | grep merged_output.pdf"
 Enter
 Sleep 3s
 
@@ -105,7 +105,7 @@ Sleep 1s
 Enter
 
 Sleep 5s
-Type "ls -lh | grep testname.pdf"
+Type "ls | grep testname.pdf"
 Enter
 Sleep 3s
 
