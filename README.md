@@ -1,5 +1,11 @@
 # pdfmc
 
+[![Go Report Card](https://goreportcard.com/badge/github.com/gmskazi/pdfmc)](https://goreportcard.com/report/github.com/gmskazi/pdfmc)
+[![Go Version](https://img.shields.io/badge/Go-1.24-blue)](https://go.dev/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![GitHub Workflow](https://github.com/gmskazi/pdfmc/actions/workflows/ci.yml/badge.svg)](https://github.com/gmskazi/pdfmc/actions)
+[![GitHub release](https://img.shields.io/github/v/release/gmskazi/pdfmc)](https://github.com/gmskazi/pdfmc/releases/latest)
+
 ## PDF CLI tool
 
 Pdfmc stands for PDF Merge Crypt.
@@ -10,6 +16,8 @@ lipgloss.
 ## Install
 
 ### If you have golang installed
+
+---
 
 ```bash
 go install github.com/gmskazi/pdfmc@latest
@@ -28,6 +36,8 @@ Reload your zshrc config
 source ~/.zshrc
 ```
 
+---
+
 ### Install using a script
 
 Run the below command in the terminal of your choice to install pdfmc.
@@ -36,6 +46,8 @@ Run the below command in the terminal of your choice to install pdfmc.
 curl -L https://raw.githubusercontent.com/gmskazi/pdfmc/main/scripts/install.sh | sh
 ```
 
+---
+
 ### Uninstall using a script
 
 Run the below command in the terminal of your choice to uninstall pdfmc.
@@ -43,6 +55,8 @@ Run the below command in the terminal of your choice to uninstall pdfmc.
 ```sh
 curl -L https://raw.githubusercontent.com/gmskazi/pdfmc/main/scripts/uninstall.sh | sh
 ```
+
+---
 
 ## Run
 
@@ -64,6 +78,8 @@ You have the ability to change the name of the output file by using the '--name'
 ```bash
 pdfmc merge --name testname
 ```
+
+---
 
 ### Encrypt PDFs
 
