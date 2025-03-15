@@ -92,7 +92,7 @@ Enter
 
 Sleep 5s
 
-Type "ls -lh | grep encrypt"
+Type "ls | grep encrypt"
 Enter
 Sleep 3s
 
