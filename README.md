@@ -1,6 +1,7 @@
 # pdfmc
 
 [![Go Report Card](https://goreportcard.com/badge/github.com/gmskazi/pdfmc)](https://goreportcard.com/report/github.com/gmskazi/pdfmc)
+[![Go Version](https://img.shields.io/badge/Go-1.24-blue)](https://go.dev/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![GitHub Workflow](https://github.com/gmskazi/pdfmc/actions/workflows/ci.yml/badge.svg)](https://github.com/gmskazi/pdfmc/actions)
 [![GitHub release](https://img.shields.io/github/v/release/gmskazi/pdfmc)](https://github.com/gmskazi/pdfmc/releases/latest)
