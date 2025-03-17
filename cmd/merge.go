@@ -56,7 +56,7 @@ var mergeCmd = &cobra.Command{
 				continue
 			}
 
-			pdfWithFullPath := fileUtils.AddFullPathToPdfs(dir, pdfs)
+			pdfWithFullPath := fileUtils.AddFullPathToPdfs(dir, selectedPdfs)
 
 			name, err := cmd.Flags().GetString("name")
 			if err != nil {
