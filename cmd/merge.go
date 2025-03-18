@@ -10,6 +10,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/gmskazi/pdfmc/cmd/pdf"
+	"github.com/gmskazi/pdfmc/cmd/ui/multiReorder"
 	"github.com/gmskazi/pdfmc/cmd/ui/multiSelect"
 	"github.com/gmskazi/pdfmc/cmd/utils"
 	"github.com/spf13/cobra"
@@ -56,6 +57,29 @@ var mergeCmd = &cobra.Command{
 				continue
 			}
 
+			reorder, err := cmd.Flags().GetBool("order")
+			if err != nil {
+				fmt.Println(errorStyle.Render(err.Error()))
+				return
+			}
+
+			// reordering of the pdfs
+			if reorder {
+				r := tea.NewProgram(multiReorder.MultiReorderModel(selectedPdfs, "merge"))
+				result, err = r.Run()
+				if err != nil {
+					fmt.Println(errorStyle.Render(err.Error()))
+					return
+				}
+
+				reorderModel := result.(multiReorder.Tmodel)
+				if reorderModel.Quit {
+					os.Exit(0)
+				}
+
+				selectedPdfs = reorderModel.GetOrderedPdfs()
+			}
+
 			pdfWithFullPath := fileUtils.AddFullPathToPdfs(dir, selectedPdfs)
 
 			name, err := cmd.Flags().GetString("name")
@@ -86,6 +110,7 @@ func init() {
 	rootCmd.AddCommand(mergeCmd)
 
 	mergeCmd.Flags().StringVarP(&name, "name", "n", "merged_output", "Custom name for the merged PDF files")
+	mergeCmd.Flags().BoolP("order", "o", false, "Reorder the PDF files before merging.")
 
 	// Here you will define your flags and configuration settings.
 

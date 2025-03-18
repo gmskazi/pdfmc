@@ -77,12 +77,20 @@ You will receive a file "merged_output.pdf" that has all the PDFs combined into 
 
 ---
 
-Custom name for the merged PDF file (default "merged_output")
+- Custom name for the merged PDF file (default "merged_output")
 
 '--name' or '-n' flag.
 
 ```bash
 pdfmc merge --name testname
+```
+
+- Reorder the PDFs
+
+'--order' or '-o' flag.
+
+```bash
+pdfmc merge --order
 ```
 
 ---
