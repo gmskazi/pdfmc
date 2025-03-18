@@ -91,16 +91,24 @@ Type "ls | grep merged_output.pdf"
 Enter
 Sleep 3s
 
-## Run merge with -n flag
-Type 'pdfmc merge -n testname'
+## Run merge with all flags
+Type 'pdfmc merge -o -n testname'
 Sleep 1s
 Enter
 Sleep 1s
-Type "jjj"
+Type "jjjx"
 Sleep 1s
 Type "kk"
 Type "x"
 Type "jx"
+Sleep 1s
+Enter
+Sleep 1s
+Down @0.5s 2
+Sleep 1s
+Type "kk"
+Sleep 1s
+Down 1
 Sleep 1s
 Enter
 
