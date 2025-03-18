@@ -70,12 +70,12 @@ func (m Tmodel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.Quit = true
 			return m, tea.Quit
 
-		case "up", "k":
+		case "k", "up":
 			if m.cursor > 0 {
 				m.cursor--
 			}
 
-		case "down", "j":
+		case "j", "down":
 			if m.cursor < len(m.pdfs)-1 {
 				m.cursor++
 			}
@@ -121,7 +121,7 @@ func (m Tmodel) View() string {
 	}
 
 	fmt.Fprint(&b, "\n")
-	b.WriteString(focusedStyle.Render("Select with Space or 'x'"))
+	b.WriteString(focusedStyle.Render("Select with Space or 'x', navigate with up/down or j/k"))
 	fmt.Fprint(&b, "\n\n")
 	b.WriteString(selectedStyle.Render("File location: ", m.directory))
 	fmt.Fprint(&b, "\n\n")
