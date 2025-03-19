@@ -106,6 +106,34 @@ pdfmc encrypt
 You have the ability to choose which PDFs you would like to encrypt (including multiple files) and set a password,
 the encrypted files will have "encrypt-" at the beginning of the file saved in the same directory.
 
+## Completions
+
+<!-- TODO: Add a gif to demonstrate autocomplete -->
+
+- To add Completions for zsh:
+
+```bash
+mkdir -p ~/.zsh/completions
+pdfmc completion zsh > ~/.zsh/completions/_pdfmc
+```
+
+- Update your zshrc file
+
+Add the below to your '.zshrc' file
+
+```bash
+# Custom completions
+fpath=(~/.zsh/completions $fpath)
+autoload -Uz compinit
+compinit -i
+```
+
+- Reload zsh
+
+```bash
+source ~/.zshrc
+```
+
 ## Contributing
 
 See [contributing](CONTRIBUTING.md).
