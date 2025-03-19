@@ -32,33 +32,36 @@ var mergeCmd = &cobra.Command{
 	Args:  cobra.ArbitraryArgs,
 	Run: func(cmd *cobra.Command, args []string) {
 		fileUtils := utils.NewFileUtils()
+		var pdfs []string
+
+		if len(args) == 0 {
+			dir, err := fileUtils.GetCurrentWorkingDir()
+			if err != nil {
+				fmt.Println(errorStyle.Render(err.Error()))
+				return
+			}
+			pdfs = fileUtils.GetPdfFilesFromDir(dir)
+		} else if len(args) == 1 && fileUtils.IsDirectory(args[0]) {
+			dir := args[0]
+			pdfs = fileUtils.GetPdfFilesFromDir(dir)
+		} else {
+			pdfs = args
+			for _, pdf := range pdfs {
+				if _, err := os.Stat(pdf); os.IsNotExist(err) {
+					fmt.Println(errorStyle.Render(fmt.Sprintf("File '%s' does not exists", pdf)))
+					os.Exit(1)
+				}
+				if info, err := os.Stat(pdf); err == nil && info.IsDir() {
+					fmt.Println(errorStyle.Render(fmt.Sprintf("'%s' is a directory, not a file", pdf)))
+					os.Exit(1)
+				}
+			}
+		}
 
 		dir, err := fileUtils.GetCurrentWorkingDir()
 		if err != nil {
 			fmt.Println(errorStyle.Render(err.Error()))
 			return
-		}
-
-		pdfs, err := cmd.Flags().GetStringSlice("files")
-		if err != nil {
-			fmt.Println(errorStyle.Render(err.Error()))
-			return
-		}
-
-		if len(pdfs) == 0 {
-			pdfs = fileUtils.GetPdfFilesFromDir(dir)
-		} else {
-			// Validate if the files exists when using a flag
-			for _, pdf := range pdfs {
-				if _, err := os.Stat(pdf); os.IsNotExist(err) {
-					fmt.Println(errorStyle.Render(err.Error()))
-					os.Exit(1)
-				}
-				if info, err := os.Stat(pdf); err == nil && info.IsDir() {
-					fmt.Println(errorStyle.Render(err.Error()))
-					os.Exit(1)
-				}
-			}
 		}
 
 		for {
@@ -132,49 +135,50 @@ func init() {
 	rootCmd.AddCommand(mergeCmd)
 
 	mergeCmd.Flags().StringVarP(&name, "name", "n", "merged_output", "Custom name for the merged PDF files")
-	mergeCmd.Flags().StringSliceP("files", "f", []string{}, "File/files to merge together comma seperated.(file.pdf,file2.pdf,etc)")
 	mergeCmd.Flags().BoolP("order", "o", false, "Reorder the PDF files before merging.")
 
 	// autocomplete for files flag
-	err := mergeCmd.RegisterFlagCompletionFunc("files", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	mergeCmd.ValidArgsFunction = func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 		var suggestions []string
-
 		dir := "."
-		parts := strings.Split(toComplete, ",")
-		lastPart := strings.TrimSpace(parts[len(parts)-1])
-		usedFiles := make(map[string]bool)
-		for _, part := range parts[:len(parts)-1] {
-			usedFiles[strings.TrimSpace(part)] = true
-		}
 
-		fmt.Fprintf(os.Stderr, "toComplete: '%s', lastPart: '%s', usedFiles: '%v'\n", toComplete, lastPart, usedFiles)
+		// if no args, suggest directories and files
+		if len(args) == 0 {
+			files, err := os.ReadDir(dir)
+			if err != nil {
+				return nil, cobra.ShellCompDirectiveError
+			}
 
-		files, err := os.ReadDir(dir)
-		if err != nil {
-			return nil, cobra.ShellCompDirectiveError
-		}
-		for _, file := range files {
-			name := file.Name()
-			lowerName := strings.ToLower(name)
-			if !file.IsDir() && strings.HasSuffix(lowerName, ".pdf") && strings.HasPrefix(lowerName, strings.ToLower(lastPart)) && !usedFiles[name] {
-				if len(parts) > 1 {
-					prefix := strings.Join(parts[:len(parts)-1], ",") + ","
-					suggestions = append(suggestions, prefix+name)
-				} else {
+			for _, file := range files {
+				name := file.Name()
+				lowerName := strings.ToLower(name)
+				if (file.IsDir() || strings.HasSuffix(lowerName, ".pdf")) && strings.HasPrefix(lowerName, strings.ToLower(toComplete)) {
+					suggestions = append(suggestions, name)
+				}
+			}
+		} else {
+			// If args exists, assume files and filter out used ones
+			usedFiles := make(map[string]bool)
+			for _, arg := range args {
+				usedFiles[strings.TrimSpace(arg)] = true
+			}
+
+			files, err := os.ReadDir(dir)
+			if err != nil {
+				return nil, cobra.ShellCompDirectiveError
+			}
+			for _, file := range files {
+				name := file.Name()
+				lowerName := strings.ToLower(name)
+				if !file.IsDir() && strings.HasSuffix(lowerName, ".pdf") && strings.HasPrefix(lowerName, strings.ToLower(toComplete)) && !usedFiles[name] {
 					suggestions = append(suggestions, name)
 				}
 			}
 		}
-		fmt.Fprintf(os.Stderr, "Suggestions: %v\n", suggestions)
 		if len(suggestions) == 0 {
 			return nil, cobra.ShellCompDirectiveNoFileComp
-		} else {
-			return suggestions, cobra.ShellCompDirectiveNoSpace
 		}
-	})
-	if err != nil {
-		fmt.Println(errorStyle.Render(err.Error()))
-		os.Exit(1)
+		return suggestions, cobra.ShellCompDirectiveDefault
 	}
 	// Here you will define your flags and configuration settings.
 
