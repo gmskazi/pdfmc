@@ -26,7 +26,7 @@ var (
 
 // mergeCmd represents the merge command
 var mergeCmd = &cobra.Command{
-	Use:   "merge [files...]",
+	Use:   "merge [files... or folder]",
 	Short: "Merge PDFs together.",
 	Long:  `This is a tool to merge PDFs together.`,
 	Args:  cobra.ArbitraryArgs,

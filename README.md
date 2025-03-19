@@ -71,6 +71,18 @@ Navigate to the directory where your PDFs live and run:
 pdfmc merge
 ```
 
+Or you have the option to add a directory and it will search that directory for pdf files.
+
+```bash
+pdfmc merge directory
+```
+
+Or you can add pdf files that you would like to be merged.
+
+```bash
+pdfmc merge file1.pdf file2.pdf file3.pdf
+```
+
 You will receive a file "merged_output.pdf" that has all the PDFs combined into one files.
 
 #### Flags
