@@ -31,10 +31,11 @@ var mergeCmd = &cobra.Command{
 	Long:  `This is a tool to merge PDFs together.`,
 	Args:  cobra.ArbitraryArgs,
 	Run: func(cmd *cobra.Command, args []string) {
-		fileUtils := utils.NewFileUtils()
 		var pdfs []string
 		var selectedPdfs []string
 		var interactive bool
+
+		fileUtils := utils.NewFileUtils()
 
 		// check if any files/folders are provided
 		if len(args) == 0 {
