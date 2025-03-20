@@ -5,7 +5,6 @@ package cmd
 
 import (
 	"os"
-	"strings"
 
 	"github.com/spf13/cobra"
 )
@@ -30,16 +29,6 @@ func Execute() {
 }
 
 func init() {
-	rootCmd.ValidArgsFunction = func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-		var suggestions []string
-		allCommands := []string{"merge", "encrypt"}
-		for _, cmdName := range allCommands {
-			if strings.HasPrefix(cmdName, toComplete) {
-				suggestions = append(suggestions, cmdName)
-			}
-		}
-		return suggestions, cobra.ShellCompDirectiveNoSpace
-	}
 	// Here you will define your flags and configuration settings.
 	// Cobra supports persistent flags, which, if defined here,
 	// will be global for your application.

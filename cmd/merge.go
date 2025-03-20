@@ -33,18 +33,26 @@ var mergeCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		fileUtils := utils.NewFileUtils()
 		var pdfs []string
+		var selectedPdfs []string
+		var interactive bool
 
+		// check if any files/folders are provided
 		if len(args) == 0 {
+			interactive = true
 			dir, err := fileUtils.GetCurrentWorkingDir()
 			if err != nil {
 				fmt.Println(errorStyle.Render(err.Error()))
 				return
 			}
 			pdfs = fileUtils.GetPdfFilesFromDir(dir)
+
 		} else if len(args) == 1 && fileUtils.IsDirectory(args[0]) {
+			interactive = true
 			dir := args[0]
 			pdfs = fileUtils.GetPdfFilesFromDir(dir)
+
 		} else {
+			interactive = false
 			pdfs = args
 			for _, pdf := range pdfs {
 				if _, err := os.Stat(pdf); os.IsNotExist(err) {
@@ -64,70 +72,75 @@ var mergeCmd = &cobra.Command{
 			return
 		}
 
-		for {
-			p := tea.NewProgram(multiSelect.MultiSelectModel(pdfs, dir, "merge"))
-			result, err := p.Run()
-			if err != nil {
-				fmt.Println(errorStyle.Render(err.Error()))
-				return
-			}
-
-			model := result.(multiSelect.Tmodel)
-			if model.Quit {
-				os.Exit(0)
-			}
-			selectedPdfs := model.GetSelectedPDFs()
-
-			if len(selectedPdfs) <= 1 {
-				continue
-			}
-
-			reorder, err := cmd.Flags().GetBool("order")
-			if err != nil {
-				fmt.Println(errorStyle.Render(err.Error()))
-				return
-			}
-
-			// reordering of the pdfs
-			if reorder {
-				r := tea.NewProgram(multiReorder.MultiReorderModel(selectedPdfs, "merge"))
-				result, err = r.Run()
+		if interactive {
+			for {
+				p := tea.NewProgram(multiSelect.MultiSelectModel(pdfs, dir, "merge"))
+				result, err := p.Run()
 				if err != nil {
 					fmt.Println(errorStyle.Render(err.Error()))
 					return
 				}
 
-				reorderModel := result.(multiReorder.Tmodel)
-				if reorderModel.Quit {
+				model := result.(multiSelect.Tmodel)
+				if model.Quit {
 					os.Exit(0)
 				}
+				selectedPdfs = model.GetSelectedPDFs()
 
-				selectedPdfs = reorderModel.GetOrderedPdfs()
+				if len(selectedPdfs) <= 1 {
+					continue
+				}
+				break
 			}
-
-			pdfWithFullPath := fileUtils.AddFullPathToPdfs(dir, selectedPdfs)
-
-			name, err := cmd.Flags().GetString("name")
-			if err != nil {
-				fmt.Println(errorStyle.Render(err.Error()))
-				return
-			}
-
-			pdfProcessor := pdf.NewPDFProcessor(fileUtils)
-
-			name = pdfProcessor.PdfExtension(name)
-
-			err = pdfProcessor.MergePdfs(pdfWithFullPath, name)
-			if err != nil {
-				fmt.Println(errorStyle.Render(err.Error()))
-				return
-			}
-
-			complete := fmt.Sprintf("PDF files merged successfully to: %s/%s", dir, name)
-			fmt.Println(infoStyle.Render(complete))
-
-			break
 		}
+
+		reorder, err := cmd.Flags().GetBool("order")
+		if err != nil {
+			fmt.Println(errorStyle.Render(err.Error()))
+			return
+		}
+
+		if !interactive {
+			selectedPdfs = pdfs
+		}
+
+		// reordering of the pdfs
+		if reorder {
+			r := tea.NewProgram(multiReorder.MultiReorderModel(selectedPdfs, "merge"))
+			result, err := r.Run()
+			if err != nil {
+				fmt.Println(errorStyle.Render(err.Error()))
+				return
+			}
+
+			reorderModel := result.(multiReorder.Tmodel)
+			if reorderModel.Quit {
+				os.Exit(0)
+			}
+
+			selectedPdfs = reorderModel.GetOrderedPdfs()
+		}
+
+		pdfWithFullPath := fileUtils.AddFullPathToPdfs(dir, selectedPdfs)
+
+		name, err := cmd.Flags().GetString("name")
+		if err != nil {
+			fmt.Println(errorStyle.Render(err.Error()))
+			return
+		}
+
+		pdfProcessor := pdf.NewPDFProcessor(fileUtils)
+
+		name = pdfProcessor.PdfExtension(name)
+
+		err = pdfProcessor.MergePdfs(pdfWithFullPath, name)
+		if err != nil {
+			fmt.Println(errorStyle.Render(err.Error()))
+			return
+		}
+
+		complete := fmt.Sprintf("PDF files merged successfully to: %s/%s", dir, name)
+		fmt.Println(infoStyle.Render(complete))
 	},
 }
 
@@ -142,7 +155,7 @@ func init() {
 		var suggestions []string
 		dir := "."
 
-		// if no args, suggest directories and files
+		// if no args, suggest directories and pdf files
 		if len(args) == 0 {
 			files, err := os.ReadDir(dir)
 			if err != nil {
@@ -157,7 +170,7 @@ func init() {
 				}
 			}
 		} else {
-			// If args exists, assume files and filter out used ones
+			// If args exists, assume pdf files and filter out used ones
 			usedFiles := make(map[string]bool)
 			for _, arg := range args {
 				usedFiles[strings.TrimSpace(arg)] = true
