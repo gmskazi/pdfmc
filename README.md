@@ -74,7 +74,7 @@ pdfmc merge
 Or you have the option to add a directory and it will search that directory for pdf files.
 
 ```bash
-pdfmc merge directory
+pdfmc merge ~/Downloads
 ```
 
 Or you can add pdf files that you would like to be merged, this will skip the UI.
@@ -83,7 +83,8 @@ Or you can add pdf files that you would like to be merged, this will skip the UI
 pdfmc merge file1.pdf file2.pdf file3.pdf
 ```
 
-You will receive a file "merged_output.pdf" that has all the PDFs combined into one files.
+You will receive a file "merged_output.pdf", this file will be located in your current working directory and will have
+all the PDFs combined into one files.
 
 #### Flags
 
@@ -130,7 +131,7 @@ pdfmc merge file1.pdf file2.pdf file3.pdf
 ```
 
 You have the ability to choose which PDFs you would like to encrypt (including multiple files) and set a password,
-the encrypted files will have "encrypt-" at the beginning of the file saved in the same directory.
+the encrypted files will have "encrypt-" at the beginning of the file saved in your current working directory.
 
 #### flags
 
