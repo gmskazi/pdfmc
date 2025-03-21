@@ -6,6 +6,7 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -32,6 +33,7 @@ var mergeCmd = &cobra.Command{
 	Args:  cobra.ArbitraryArgs,
 	Run: func(cmd *cobra.Command, args []string) {
 		var pdfs []string
+		var dir string
 		var selectedPdfs []string
 		var interactive bool
 
@@ -49,7 +51,7 @@ var mergeCmd = &cobra.Command{
 
 		} else if len(args) == 1 && fileUtils.IsDirectory(args[0]) {
 			interactive = true
-			dir := args[0]
+			dir = args[0]
 			pdfs = fileUtils.GetPdfFilesFromDir(dir)
 
 		} else {
@@ -65,12 +67,6 @@ var mergeCmd = &cobra.Command{
 					os.Exit(1)
 				}
 			}
-		}
-
-		dir, err := fileUtils.GetCurrentWorkingDir()
-		if err != nil {
-			fmt.Println(errorStyle.Render(err.Error()))
-			return
 		}
 
 		if interactive {
@@ -140,7 +136,12 @@ var mergeCmd = &cobra.Command{
 			return
 		}
 
-		complete := fmt.Sprintf("PDF files merged successfully to: %s/%s", dir, name)
+		saveDir, err := fileUtils.GetCurrentWorkingDir()
+		if err != nil {
+			fmt.Println(errorStyle.Render(err.Error()))
+			return
+		}
+		complete := fmt.Sprintf("PDF files merged successfully to: %s/%s", saveDir, name)
 		fmt.Println(infoStyle.Render(complete))
 	},
 }
@@ -154,45 +155,75 @@ func init() {
 	// autocomplete for files flag
 	mergeCmd.ValidArgsFunction = func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 		var suggestions []string
+		var homeDir string
 		dir := "."
 
-		// if no args, suggest directories and pdf files
-		if len(args) == 0 {
-			files, err := os.ReadDir(dir)
+		if strings.HasPrefix(toComplete, "/") {
+			dir = "/"
+			toComplete = strings.TrimPrefix(toComplete, "/")
+		} else if strings.HasPrefix(toComplete, "~/") {
+			var err error
+			homeDir, err = os.UserHomeDir()
 			if err != nil {
+				fmt.Println(errorStyle.Render(err.Error()))
 				return nil, cobra.ShellCompDirectiveError
 			}
+			dir = homeDir
+			toComplete = strings.TrimPrefix(toComplete, "~/")
+		}
 
-			for _, file := range files {
-				name := file.Name()
-				lowerName := strings.ToLower(name)
-				if (file.IsDir() || strings.HasSuffix(lowerName, ".pdf")) && strings.HasPrefix(lowerName, strings.ToLower(toComplete)) {
-					suggestions = append(suggestions, name)
-				}
-			}
+		// Determine the base directory and filter term
+		searchDir := filepath.Join(dir, toComplete)
+		if fileInfo, err := os.Stat(searchDir); err == nil && fileInfo.IsDir() {
+			dir = searchDir
+			toComplete = "" // Reset filtering because we are inside a valid folder
 		} else {
-			// If args exists, assume pdf files and filter out used ones
-			usedFiles := make(map[string]bool)
-			for _, arg := range args {
-				usedFiles[strings.TrimSpace(arg)] = true
+			dir = filepath.Dir(searchDir) // Use the parent directory
+			toComplete = filepath.Base(searchDir)
+		}
+
+		// Track already selected PDFs
+		usedFiles := make(map[string]bool)
+		for _, arg := range args {
+			usedFiles[strings.TrimSpace(arg)] = true
+		}
+
+		// Read directory contents (1-level deep, no recursion)
+		files, err := os.ReadDir(dir)
+		if err != nil {
+			return nil, cobra.ShellCompDirectiveError
+		}
+
+		for _, file := range files {
+			name := file.Name()
+			lowerName := strings.ToLower(name)
+			fullPath := filepath.Join(dir, name)
+
+			// Convert home paths back to `~/`
+			if homeDir != "" && strings.HasPrefix(fullPath, homeDir) {
+				fullPath = "~/" + strings.TrimPrefix(fullPath, homeDir+"/")
 			}
 
-			files, err := os.ReadDir(dir)
-			if err != nil {
-				return nil, cobra.ShellCompDirectiveError
-			}
-			for _, file := range files {
-				name := file.Name()
-				lowerName := strings.ToLower(name)
-				if !file.IsDir() && strings.HasSuffix(lowerName, ".pdf") && strings.HasPrefix(lowerName, strings.ToLower(toComplete)) && !usedFiles[name] {
-					suggestions = append(suggestions, name)
+			// If no args, suggest directories and PDFs
+			if len(args) == 0 {
+				if (file.IsDir() || strings.HasSuffix(lowerName, ".pdf")) && strings.HasPrefix(lowerName, strings.ToLower(toComplete)) {
+					suggestions = append(suggestions, fullPath)
+				}
+			} else {
+				// If args exist, only suggest PDFs that haven't been selected yet
+				if !file.IsDir() && strings.HasSuffix(lowerName, ".pdf") && strings.HasPrefix(lowerName, strings.ToLower(toComplete)) {
+					if !usedFiles[fullPath] {
+						suggestions = append(suggestions, fullPath)
+					}
 				}
 			}
 		}
+
 		if len(suggestions) == 0 {
 			return nil, cobra.ShellCompDirectiveNoFileComp
 		}
-		return suggestions, cobra.ShellCompDirectiveDefault
+		// Prevent spaces from being inserted after completing a directory
+		return suggestions, cobra.ShellCompDirectiveNoSpace | cobra.ShellCompDirectiveDefault
 	}
 	// Here you will define your flags and configuration settings.
 

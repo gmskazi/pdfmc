@@ -91,7 +91,7 @@ You will receive a file "merged_output.pdf" that has all the PDFs combined into 
 
 - Custom name for the merged PDF file (default "merged_output")
 
-'--name' or '-n' flag.
+> '--name' or '-n' flag.
 
 ```bash
 pdfmc merge -n testname
@@ -99,7 +99,7 @@ pdfmc merge -n testname
 
 - Reorder the PDFs through the UI.
 
-'--order' or '-o' flag.
+> '--order' or '-o' flag.
 
 ```bash
 pdfmc merge -o
@@ -138,13 +138,15 @@ the encrypted files will have "encrypt-" at the beginning of the file saved in t
 
 - Password to encrypt the PDF files.
 
-'--password' or '-p' flag.
+> '--password' or '-p' flag.
+
+The below option will use the UI for selecting the pdf files to encrypt.
 
 ```bash
 pdfmc encrypt -p veryStr0ngPa33w0rd!
 ```
 
-Or
+This option will will not using any UI and will encrypt the files automatically.
 
 ```bash
 pdfmc encrypt file1.pdf file2.pdf -p veryStr0ngPa33w0rd!
@@ -159,7 +161,8 @@ Custom and normal completions that have been configured:
 
 - Autocompletion for the subcommands by hitting tab.
 - After 'pdfmc merge/encrypt' only pdf files and folders will be displayed.
-- If you choose a pdf file as your first choice your second options shouldn't include your first choice.
+- If you choose a pdf file as your first choice your second options shouldn't include your first choice and will only
+display pdf files.
 - If you add a '-' + tab all the flags will be displayed.
 
 - To add Completions for zsh:
