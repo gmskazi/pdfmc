@@ -13,6 +13,14 @@ func NewFileUtils() *FileUtils {
 	return &FileUtils{}
 }
 
+func (f *FileUtils) IsDirectory(path string) bool {
+	info, err := os.Stat(path)
+	if err != nil {
+		return false
+	}
+	return info.IsDir()
+}
+
 func (f *FileUtils) GetCurrentWorkingDir() (string, error) {
 	dir, err := os.Getwd()
 	if err != nil {

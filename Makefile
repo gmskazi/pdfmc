@@ -10,6 +10,12 @@ build:
 	@go build .
 
 # Run the application
+install: build
+	@echo "Installing..."
+	@sudo mv pdfmc /usr/local/bin/
+	@mkdir -p ~/.zsh/completions
+	@pdfmc completion zsh > ~/.zsh/completions/_pdfmc
+
 run:
 	@go run .
 
@@ -34,6 +40,9 @@ lint:
 clean:
 	@echo "Cleaning..."
 	@rm -f pdfmc
+	@if [ -f /usr/local/bin/pdfmc ]; then
+		sudo rm /usr/local/bin/pdfmc
+	fi
 
 
-.PHONY: all build run test coverage linting clean
+.PHONY: all build install run test coverage linting clean
