@@ -57,7 +57,7 @@
 
 Set FontSize 15
 Set FontFamily "JetBrainsMono Nerd Font"
-Output merge.gif
+Output completions.gif
 
 Require pdfmc
 
@@ -73,59 +73,31 @@ Enter
 
 Show
 
-## Run merge
-Type 'pdfmc merge -h'
-Enter
+## completions
+Type "pdfmc"
+Tab
+Sleep 1s
+Type "m"
+Sleep 1s
+Tab
+Sleep 2s
+Type "let"
+Tab @0.5s 3
+Space
+Sleep 1s
+Type "l"
+Tab
+Sleep 1s
+Space
+Type "-"
+Sleep 1s
+Tab
+Sleep 1s
+Type "n test "
+Sleep 1s
+Type "-"
+Tab
+Sleep 1s
+Type "o"
 Sleep 3s
-Type 'pdfmc merge'
-Sleep 1s
-Enter
-Sleep 1s
-Type "jjj"
-Sleep 1s
-Type "kk"
-Type "x"
-Type "jx"
-Sleep 1s
-Enter
-
-Sleep 3s
-Type "ls | grep merged_output.pdf"
-Enter
-Sleep 3s
-
-## Run merge with all flags
-Type 'pdfmc merge -o -n testname'
-Sleep 1s
-Enter
-Sleep 1s
-Type "jjjx"
-Sleep 1s
-Type "kk"
-Type "x"
-Type "jx"
-Sleep 1s
-Enter
-Sleep 1s
-Down @0.5s 2
-Sleep 1s
-Type "kk"
-Sleep 1s
-Down 1
-Sleep 1s
-Enter
-
-Sleep 5s
-Type "ls | grep testname.pdf"
-Enter
-Sleep 3s
-
-Hide
-
-## Cleanup the files
-Type "rm testname.pdf"
-Enter
-Type "rm merged_output.pdf"
-Enter
-
 

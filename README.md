@@ -71,7 +71,20 @@ Navigate to the directory where your PDFs live and run:
 pdfmc merge
 ```
 
-You will receive a file "merged_output.pdf" that has all the PDFs combined into one files.
+Or you have the option to add a directory and it will search that directory for pdf files.
+
+```bash
+pdfmc merge ~/Downloads
+```
+
+Or you can add pdf files that you would like to be merged, this will skip the UI.
+
+```bash
+pdfmc merge file1.pdf file2.pdf file3.pdf
+```
+
+You will receive a file "merged_output.pdf", this file will be located in your current working directory and will have
+all the PDFs combined into one files.
 
 #### Flags
 
@@ -79,18 +92,18 @@ You will receive a file "merged_output.pdf" that has all the PDFs combined into 
 
 - Custom name for the merged PDF file (default "merged_output")
 
-'--name' or '-n' flag.
+> '--name' or '-n' flag.
 
 ```bash
-pdfmc merge --name testname
+pdfmc merge -n testname
 ```
 
-- Reorder the PDFs
+- Reorder the PDFs through the UI.
 
-'--order' or '-o' flag.
+> '--order' or '-o' flag.
 
 ```bash
-pdfmc merge --order
+pdfmc merge -o
 ```
 
 ---
@@ -99,12 +112,83 @@ pdfmc merge --order
 
 ![pdfmc encrypt](public/encrypt.gif)
 
+Navigate to the directory where your PDFs live and run:
+
 ```bash
 pdfmc encrypt
 ```
 
+Or you have the option to add a directory and it will search that directory for pdf files.
+
+```bash
+pdfmc encrypt directory
+```
+
+Or you can add pdf files that you would like to be merged, this will skip the UI for selecting the PDF files.
+
+```bash
+pdfmc merge file1.pdf file2.pdf file3.pdf
+```
+
 You have the ability to choose which PDFs you would like to encrypt (including multiple files) and set a password,
-the encrypted files will have "encrypt-" at the beginning of the file saved in the same directory.
+the encrypted files will have "encrypt-" at the beginning of the file saved in your current working directory.
+
+#### flags
+
+---
+
+- Password to encrypt the PDF files.
+
+> '--password' or '-p' flag.
+
+The below option will use the UI for selecting the pdf files to encrypt.
+
+```bash
+pdfmc encrypt -p veryStr0ngPa33w0rd!
+```
+
+This option will will not using any UI and will encrypt the files automatically.
+
+```bash
+pdfmc encrypt file1.pdf file2.pdf -p veryStr0ngPa33w0rd!
+```
+
+## Completions
+
+<!-- TODO: Add a gif to demonstrate autocomplete -->
+![completions](public/completions.gif)
+
+Custom and normal completions that have been configured:
+
+- Autocompletion for the subcommands by hitting tab.
+- After 'pdfmc merge/encrypt' only pdf files and folders will be displayed.
+- If you choose a pdf file as your first choice your second options shouldn't include your first choice and will only
+display pdf files.
+- If you add a '-' + tab all the flags will be displayed.
+
+- To add Completions for zsh:
+
+```bash
+mkdir -p ~/.zsh/completions
+pdfmc completion zsh > ~/.zsh/completions/_pdfmc
+```
+
+- Update your zshrc file
+
+Add the below to your '.zshrc' file
+
+```bash
+# Custom completions
+fpath=(~/.zsh/completions $fpath)
+autoload -Uz compinit
+compinit -i
+```
+
+- Reload zsh
+
+```bash
+source ~/.zshrc
+```
 
 ## Contributing
 
