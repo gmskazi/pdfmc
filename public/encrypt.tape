@@ -66,7 +66,7 @@ Hide
 Type "source ~/.zshrc"
 Enter
 
-Type "cd .."
+Type "cd ~/pdfDemo/"
 Enter
 Type "clear"
 Enter
@@ -74,6 +74,9 @@ Enter
 Show
 
 ## Run encrypt
+Type "pdfmc encrypt -h"
+Enter
+Sleep 3s
 Type "pdfmc encrypt"
 Sleep 1s
 Enter
@@ -96,10 +99,21 @@ Type "ls | grep encrypt"
 Enter
 Sleep 3s
 
+Type "pdfmc encrypt lets-go.pdf -p test"
+Sleep 1s
+Enter
+Sleep 3s
+
+Type "ls | grep encrypt"
+Enter
+Sleep 3s
+
 Hide
 ## Cleanup the files
 Type "rm encrypted-Project+-+Bouncing+Ball.pdf"
 Enter
 Type "rm encrypted-Project+-+Retro+Led+Clock.pdf"
+Enter
+Type "rm encrypted-lets-go.pdf"
 Enter
 
