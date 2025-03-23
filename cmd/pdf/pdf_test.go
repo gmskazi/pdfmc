@@ -59,6 +59,8 @@ func TestMergedPdfs(t *testing.T) {
 }
 
 func TestValidateInputFiles(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name          string
 		setup         func(tempDir string)
