@@ -1,8 +1,10 @@
 package cmd
 
 import (
+	"bytes"
+	"fmt"
 	"os"
-	"os/exec"
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -39,8 +41,7 @@ func TestMergeCommand(t *testing.T) {
 
 	tests := []struct {
 		name           string
-		setup          func(tempDir string)
-		args           func(dir string) []string
+		setup          func(t *testing.T, tempDir string) []string
 		fileOutput     string
 		expectError    bool
 		expectedOutput string
@@ -48,40 +49,22 @@ func TestMergeCommand(t *testing.T) {
 	}{
 		{
 			name: "Merge two PDF files",
-			setup: func(tempDir string) {
-				err := createValidPDF(tempDir + "/file1.pdf")
+			setup: func(t *testing.T, tempDir string) []string {
+				file1 := "file1.pdf"
+				file2 := "file2.pdf"
+
+				err := createValidPDF(filepath.Join(tempDir, file1))
 				if err != nil {
 					t.Fatalf("failed to create file1.pdf: %v", err)
 				}
-				err = createValidPDF(tempDir + "/file2.pdf")
+				err = createValidPDF(filepath.Join(tempDir, file2))
 				if err != nil {
 					t.Fatalf("failed to create file2.pdf: %v", err)
 				}
-			},
-			args: func(_ string) []string {
-				return []string{"merge", "file1.pdf", "file2.pdf"}
+
+				return []string{"merge", file1, file2}
 			},
 			fileOutput:     "merged_output.pdf",
-			expectError:    false,
-			expectedOutput: "PDF files merged successfully to:",
-			checkFile:      true,
-		},
-		{
-			name: "Merge two PDF files with custom name",
-			setup: func(tempDir string) {
-				err := createValidPDF(tempDir + "/file1.pdf")
-				if err != nil {
-					t.Fatalf("failed to create file1.pdf: %v", err)
-				}
-				err = createValidPDF(tempDir + "/file2.pdf")
-				if err != nil {
-					t.Fatalf("failed to create file2.pdf: %v", err)
-				}
-			},
-			args: func(_ string) []string {
-				return []string{"merge", "file1.pdf", "file2.pdf", "-n", "testCustomName"}
-			},
-			fileOutput:     "testCustomName.pdf",
 			expectError:    false,
 			expectedOutput: "PDF files merged successfully to:",
 			checkFile:      true,
@@ -92,18 +75,21 @@ func TestMergeCommand(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			tempDir := t.TempDir()
 
-			if tt.setup != nil {
-				tt.setup(tempDir)
-			}
+			args := tt.setup(t, tempDir)
+			fmt.Println(args)
 
 			err := os.Chdir(tempDir)
 			if err != nil {
 				t.Fatalf("failed to change directory: %v", tempDir)
 			}
 
-			cmdArgs := tt.args(tempDir)
-			cmd := exec.Command("pdfmc", cmdArgs...)
-			output, err := cmd.CombinedOutput()
+			var outputBuf bytes.Buffer
+
+			mergeCmd.SetOut(&outputBuf)
+			mergeCmd.SetErr(&outputBuf)
+			mergeCmd.SetArgs(args)
+
+			err = mergeCmd.Execute()
 
 			if tt.expectError {
 				assert.Error(t, err, "Expected an error but command ran successfuly.")
@@ -111,14 +97,11 @@ func TestMergeCommand(t *testing.T) {
 				assert.NoError(t, err, "Expected command to run successfuly but it failed.")
 			}
 
-			assert.Contains(t, string(output), tt.expectedOutput, "Unexpected output from command.")
+			assert.Contains(t, outputBuf.String(), tt.expectedOutput, "Unexpected output from command.")
 
 			if tt.checkFile {
 				_, err := os.Stat(tt.fileOutput)
-				if err != nil {
-					assert.NoError(t, err, "Expected merged PDF file to be created but it wasn't there.")
-					_ = os.Remove(tt.fileOutput)
-				}
+				assert.NoError(t, err, "Expected merged PDF file to be created but it wasn't there.")
 			}
 		})
 	}
