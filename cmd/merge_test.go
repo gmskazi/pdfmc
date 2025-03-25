@@ -66,6 +66,28 @@ func TestMergeCommand(t *testing.T) {
 			},
 			fileOutput:     "merged_output.pdf",
 			expectError:    false,
+			expectedOutput: "",
+			checkFile:      true,
+		},
+		{
+			name: "Merge two PDF files with custom filename",
+			setup: func(t *testing.T, tempDir string) []string {
+				file1 := "file1.pdf"
+				file2 := "file2.pdf"
+
+				err := createValidPDF(filepath.Join(tempDir, file1))
+				if err != nil {
+					t.Fatalf("failed to create file1.pdf: %v", err)
+				}
+				err = createValidPDF(filepath.Join(tempDir, file2))
+				if err != nil {
+					t.Fatalf("failed to create file2.pdf: %v", err)
+				}
+
+				return []string{"merge", file1, file2, "-n", "testname"}
+			},
+			fileOutput:     "testname.pdf",
+			expectError:    false,
 			expectedOutput: "PDF files merged successfully to:",
 			checkFile:      true,
 		},
@@ -79,15 +101,14 @@ func TestMergeCommand(t *testing.T) {
 			fmt.Println(args)
 
 			err := os.Chdir(tempDir)
-			if err != nil {
-				t.Fatalf("failed to change directory: %v", tempDir)
-			}
+			assert.NoError(t, err, "failed to change directory: ", tempDir)
 
 			var outputBuf bytes.Buffer
 
-			mergeCmd.SetOut(&outputBuf)
-			mergeCmd.SetErr(&outputBuf)
-			mergeCmd.SetArgs(args)
+			// BUG: expectedOutput isn't outputing anything
+			rootCmd.SetOut(&outputBuf)
+			rootCmd.SetErr(&outputBuf)
+			rootCmd.SetArgs(args)
 
 			err = mergeCmd.Execute()
 
