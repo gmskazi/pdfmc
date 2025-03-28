@@ -28,3 +28,4 @@ pdfmc
 test
 *.pdf
 .qodo
+vendor

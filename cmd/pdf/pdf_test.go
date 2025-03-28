@@ -49,7 +49,7 @@ func TestMergedPdfs(t *testing.T) {
 	err = createValidPDF(inputFile2)
 	assert.NoError(t, err)
 
-	fileUtils := utils.NewFileUtils()
+	fileUtils := utils.NewFileUtils(nil)
 	pdfProcssor := NewPDFProcessor(fileUtils)
 	err = pdfProcssor.MergePdfs([]string{inputFile1, inputFile2}, outputfile)
 	assert.NoError(t, err)
@@ -114,7 +114,7 @@ func TestValidateInputFiles(t *testing.T) {
 				tt.setup(tempDir)
 			}
 
-			fileUtils := utils.NewFileUtils()
+			fileUtils := utils.NewFileUtils(nil)
 			pdfProcessor := NewPDFProcessor(fileUtils)
 
 			pdfs := fileUtils.GetPdfFilesFromDir(tempDir)
@@ -135,7 +135,7 @@ func TestValidateInputFiles(t *testing.T) {
 
 func TestPdfExtension(t *testing.T) {
 	expected := "testing.pdf"
-	fileUtils := utils.NewFileUtils()
+	fileUtils := utils.NewFileUtils(nil)
 	pdfProcessor := NewPDFProcessor(fileUtils)
 	actual := pdfProcessor.PdfExtension("testing")
 

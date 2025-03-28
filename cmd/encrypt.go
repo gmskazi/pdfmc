@@ -31,7 +31,7 @@ var encryptCmd = &cobra.Command{
 		var interactive bool
 		var pword string
 
-		fileUtils := utils.NewFileUtils()
+		fileUtils := utils.NewFileUtils(args)
 
 		// check if any files/folders are provided
 		if len(args) == 0 {

@@ -37,36 +37,13 @@ var mergeCmd = &cobra.Command{
 		var selectedPdfs []string
 		var interactive bool
 
-		fileUtils := utils.NewFileUtils()
+		fileUtils := utils.NewFileUtils(args)
 
 		// check if any files/folders are provided
-		if len(args) == 0 {
-			interactive = true
-			dir, err := fileUtils.GetCurrentWorkingDir()
-			if err != nil {
-				fmt.Println(errorStyle.Render(err.Error()))
-				return
-			}
-			pdfs = fileUtils.GetPdfFilesFromDir(dir)
-
-		} else if len(args) == 1 && fileUtils.IsDirectory(args[0]) {
-			interactive = true
-			dir = args[0]
-			pdfs = fileUtils.GetPdfFilesFromDir(dir)
-
-		} else {
-			interactive = false
-			pdfs = args
-			for _, pdf := range pdfs {
-				if _, err := os.Stat(pdf); os.IsNotExist(err) {
-					fmt.Println(errorStyle.Render(fmt.Sprintf("File '%s' does not exists", pdf)))
-					os.Exit(1)
-				}
-				if info, err := os.Stat(pdf); err == nil && info.IsDir() {
-					fmt.Println(errorStyle.Render(fmt.Sprintf("'%s' is a directory, not a file", pdf)))
-					os.Exit(1)
-				}
-			}
+		pdfs, interactive, err := fileUtils.CheckProvidedArgs(args)
+		if err != nil {
+			fmt.Fprintln(cmd.OutOrStdout(), errorStyle.Render(err.Error()))
+			return
 		}
 
 		if interactive {
@@ -80,7 +57,7 @@ var mergeCmd = &cobra.Command{
 
 				model := result.(multiSelect.Tmodel)
 				if model.Quit {
-					os.Exit(0)
+					return
 				}
 				selectedPdfs = model.GetSelectedPDFs()
 
@@ -112,7 +89,7 @@ var mergeCmd = &cobra.Command{
 
 			reorderModel := result.(multiReorder.Tmodel)
 			if reorderModel.Quit {
-				os.Exit(0)
+				return
 			}
 
 			selectedPdfs = reorderModel.GetOrderedPdfs()
@@ -132,7 +109,7 @@ var mergeCmd = &cobra.Command{
 
 		err = pdfProcessor.MergePdfs(pdfWithFullPath, name)
 		if err != nil {
-			fmt.Println(errorStyle.Render(err.Error()))
+			fmt.Fprintln(cmd.OutOrStdout(), errorStyle.Render(err.Error()))
 			return
 		}
 
@@ -142,7 +119,7 @@ var mergeCmd = &cobra.Command{
 			return
 		}
 		complete := fmt.Sprintf("PDF files merged successfully to: %s/%s", saveDir, name)
-		fmt.Println(infoStyle.Render(complete))
+		fmt.Fprintln(cmd.OutOrStdout(), infoStyle.Render(complete))
 	},
 }
 

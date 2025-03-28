@@ -37,7 +37,7 @@ startxref
 func TestGetCurrentWorkingDir(t *testing.T) {
 	expectedDir, _ := os.Getwd()
 
-	fileUtils := NewFileUtils()
+	fileUtils := NewFileUtils(nil)
 	actualDir, err := fileUtils.GetCurrentWorkingDir()
 	assert.NoError(t, err)
 	assert.Equal(t, expectedDir, actualDir)
@@ -56,7 +56,7 @@ func TestReadDirectory(t *testing.T) {
 		t.Errorf("error createing file2.pdf: %v", err)
 	}
 
-	fileUtils := NewFileUtils()
+	fileUtils := NewFileUtils(nil)
 	entries, err := fileUtils.ReadDirectory(tempDir)
 	if err != nil {
 		t.Errorf("error GetCurrentWorkingDir: %v", err)
@@ -75,7 +75,7 @@ func TestReadDirectory(t *testing.T) {
 }
 
 func TestFilterPdfFiles(t *testing.T) {
-	fileUtils := NewFileUtils()
+	fileUtils := NewFileUtils(nil)
 
 	tempDir := t.TempDir()
 	err := createValidPDF(tempDir + "/file1.pdf")
@@ -105,7 +105,7 @@ func TestFilterPdfFiles(t *testing.T) {
 }
 
 func TestGetPdfFilesFromDir(t *testing.T) {
-	fileUtils := NewFileUtils()
+	fileUtils := NewFileUtils(nil)
 
 	tempDir := t.TempDir()
 	err := createValidPDF(tempDir + "/file1.pdf")
@@ -124,7 +124,7 @@ func TestGetPdfFilesFromDir(t *testing.T) {
 }
 
 func TestAddFullPathToPdfs(t *testing.T) {
-	fileUtils := NewFileUtils()
+	fileUtils := NewFileUtils(nil)
 
 	dir := "testDir"
 	pdfs := []string{"file1.pdf", "file2.pdf"}

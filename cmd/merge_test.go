@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"bytes"
-	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
@@ -37,8 +36,6 @@ startxref
 }
 
 func TestMergeCommand(t *testing.T) {
-	t.Parallel()
-
 	tests := []struct {
 		name           string
 		setup          func(t *testing.T, tempDir string) []string
@@ -66,7 +63,7 @@ func TestMergeCommand(t *testing.T) {
 			},
 			fileOutput:     "merged_output.pdf",
 			expectError:    false,
-			expectedOutput: "",
+			expectedOutput: "PDF files merged successfully to:",
 			checkFile:      true,
 		},
 		{
@@ -91,26 +88,71 @@ func TestMergeCommand(t *testing.T) {
 			expectedOutput: "PDF files merged successfully to:",
 			checkFile:      true,
 		},
+		{
+			name: "Check if file and directory is provided",
+			setup: func(t *testing.T, tempDir string) []string {
+				file1 := "file1.pdf"
+				dir := filepath.Join(tempDir, "test")
+
+				err := createValidPDF(filepath.Join(tempDir, file1))
+				if err != nil {
+					t.Fatalf("failed to create file1.pdf: %v", err)
+				}
+				err = os.Mkdir(dir, 0755)
+				if err != nil {
+					t.Fatalf("failed to create test directory: %v", err)
+				}
+
+				return []string{"merge", file1, dir}
+			},
+			fileOutput:     "",
+			expectError:    false,
+			expectedOutput: "no PDF files provided",
+			checkFile:      false,
+		},
+		{
+			name: "Check if provided files are avalible.",
+			setup: func(t *testing.T, tempDir string) []string {
+				file1 := "file1.pdf"
+				file2 := "file2.pdf"
+
+				return []string{"merge", file1, file2}
+			},
+			fileOutput:     "",
+			expectError:    false,
+			expectedOutput: "no such file or directory",
+			checkFile:      false,
+		},
+		{
+			name: "Check if directory is valid.",
+			setup: func(t *testing.T, tempDir string) []string {
+				os.RemoveAll(tempDir)
+
+				return []string{"merge", tempDir}
+			},
+			fileOutput:     "",
+			expectError:    false,
+			expectedOutput: "no such file or directory",
+			checkFile:      false,
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			tempDir := t.TempDir()
-
-			args := tt.setup(t, tempDir)
-			fmt.Println(args)
-
 			err := os.Chdir(tempDir)
 			assert.NoError(t, err, "failed to change directory: ", tempDir)
 
+			args := tt.setup(t, tempDir)
+			// fmt.Println(args)
+
 			var outputBuf bytes.Buffer
 
-			// BUG: expectedOutput isn't outputing anything
 			rootCmd.SetOut(&outputBuf)
 			rootCmd.SetErr(&outputBuf)
 			rootCmd.SetArgs(args)
 
-			err = mergeCmd.Execute()
+			err = rootCmd.Execute()
 
 			if tt.expectError {
 				assert.Error(t, err, "Expected an error but command ran successfuly.")
@@ -127,3 +169,41 @@ func TestMergeCommand(t *testing.T) {
 		})
 	}
 }
+
+// func TestInteractiveMode(t *testing.T) {
+// 	tests := []struct {
+// 		name           string
+// 		pdfs           []string
+// 		inputKeys      []tea.KeyType
+// 		expectedOutput string
+// 		checkFile      bool
+// 	}{
+// 		{
+// 			name: "Test pdfmc merge",
+// 			pdfs: []string{"file1.pdf", "file2.pdf"},
+// 			inputKeys: []tea.KeyType{
+// 				tea.KeySpace,
+// 				tea.KeyDown,
+// 			},
+// 			expectedOutput: "",
+// 			checkFile:      true,
+// 		},
+// 	}
+//
+// 	for _, tt := range tests {
+// 		t.Run(tt.name, func(t *testing.T) {
+// 			model := multiSelect.MultiSelectModel(tt.pdfs, "/tmp", "merge")
+// 			var out bytes.Buffer
+// 			p := tea.NewProgram(model, tea.WithInput(nil), tea.WithOutput(&out))
+//
+// 			go func() {
+// 				_, _ = p.Run()
+// 			}()
+//
+// 			for _, key := range tt.inputKeys {
+// 				time.Sleep(10 * time.Millisecond)
+// 				_ = p.Send(tea.KeyMsg{Type: key})
+// 			}
+// 		})
+// 	}
+// }
