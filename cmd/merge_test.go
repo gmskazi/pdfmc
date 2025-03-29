@@ -107,7 +107,7 @@ func TestMergeCommand(t *testing.T) {
 			},
 			fileOutput:     "",
 			expectError:    false,
-			expectedOutput: "no PDF files provided",
+			expectedOutput: "is a directory not a pdf",
 			checkFile:      false,
 		},
 		{
@@ -126,7 +126,8 @@ func TestMergeCommand(t *testing.T) {
 		{
 			name: "Check if directory is valid.",
 			setup: func(t *testing.T, tempDir string) []string {
-				os.RemoveAll(tempDir)
+				err := os.RemoveAll(tempDir)
+				assert.NoError(t, err, "failed to remove directory: ", tempDir)
 
 				return []string{"merge", tempDir}
 			},

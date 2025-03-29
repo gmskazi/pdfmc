@@ -34,13 +34,70 @@ startxref
 	return os.WriteFile(filepath, []byte(content), 0644)
 }
 
-func TestGetCurrentWorkingDir(t *testing.T) {
-	expectedDir, _ := os.Getwd()
+func TestIsDirectory(t *testing.T) {
+	tempDir := t.TempDir()
 
-	fileUtils := NewFileUtils(nil)
+	// Create test file
+	testFile := filepath.Join(tempDir, "test.txt")
+	err := os.WriteFile(testFile, []byte("test"), 0644)
+	assert.NoError(t, err)
+
+	// Create Test Subdirectory
+	testSubDir := filepath.Join(tempDir, "subdir")
+	err = os.Mkdir(testSubDir, 0755)
+	assert.NoError(t, err)
+
+	f := &FileUtils{}
+
+	tests := []struct {
+		name     string
+		path     string
+		expected bool
+	}{
+		{
+			name:     "should return true for existing directory",
+			path:     tempDir,
+			expected: true,
+		},
+		{
+			name:     "should return true for existing subdirectory",
+			path:     testSubDir,
+			expected: true,
+		},
+		{
+			name:     "should return false for existing file",
+			path:     testFile,
+			expected: false,
+		},
+		{
+			name:     "should return false for non-existing path",
+			path:     filepath.Join(tempDir, "non-existing"),
+			expected: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := f.IsDirectory(tt.path)
+			assert.Equal(t, tt.expected, result)
+		})
+	}
+}
+
+func TestGetCurrentWorkingDir(t *testing.T) {
+	expectedDir, err := os.Getwd()
+	if err != nil {
+		t.Fatalf("failed to get current working dir: %v", err)
+	}
+
+	fileUtils := *NewFileUtils(nil)
 	actualDir, err := fileUtils.GetCurrentWorkingDir()
 	assert.NoError(t, err)
 	assert.Equal(t, expectedDir, actualDir)
+
+	fileUtils.dir = "dummydir"
+	_, err = fileUtils.GetCurrentWorkingDir()
+	assert.NoError(t, err)
 }
 
 func TestReadDirectory(t *testing.T) {
@@ -98,7 +155,7 @@ func TestFilterPdfFiles(t *testing.T) {
 
 	entries, _ := fileUtils.ReadDirectory(tempDir)
 
-	pdfFiles := fileUtils.FilterPdfFiles("", entries)
+	pdfFiles := fileUtils.FilterPdfFiles(entries)
 	assert.Len(t, pdfFiles, 2)
 	assert.Contains(t, pdfFiles, "file1.pdf")
 	assert.Contains(t, pdfFiles, "file2.pdf")
@@ -133,4 +190,113 @@ func TestAddFullPathToPdfs(t *testing.T) {
 	assert.Len(t, fullPaths, 2)
 	assert.Equal(t, filepath.Join(dir, "file1.pdf"), fullPaths[0])
 	assert.Equal(t, filepath.Join(dir, "file2.pdf"), fullPaths[1])
+}
+
+func TestCheckProvidedArgs(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name                string
+		setup               func(tempDir string)
+		args                []string
+		expectedPdfs        []string
+		expectedErr         bool
+		expectedInteractive bool
+	}{
+		{
+			name: "no args provided",
+			setup: func(tempDir string) {
+				file1 := filepath.Join(tempDir, "file1.pdf")
+				file2 := filepath.Join(tempDir, "file2.pdf")
+				err := createValidPDF(file1)
+				assert.NoError(t, err)
+				err = createValidPDF(file2)
+				assert.NoError(t, err)
+			},
+			args:                []string{},
+			expectedPdfs:        []string{"file1.pdf", "file2.pdf"},
+			expectedErr:         false,
+			expectedInteractive: true,
+		},
+		{
+			name: "1 directory provided",
+			setup: func(tempDir string) {
+				err := os.Mkdir(filepath.Join(tempDir, "test"), 0755)
+				assert.NoError(t, err)
+				file1 := filepath.Join(filepath.Join(tempDir, "test"), "file1.pdf")
+				err = createValidPDF(file1)
+				assert.NoError(t, err)
+			},
+			args:                []string{"test"},
+			expectedPdfs:        []string{"file1.pdf"},
+			expectedErr:         false,
+			expectedInteractive: true,
+		},
+		{
+			name: "1 file provided",
+			setup: func(tempDir string) {
+				file1 := filepath.Join(tempDir, "file1.pdf")
+				err := createValidPDF(file1)
+				assert.NoError(t, err)
+			},
+			args:                []string{"file1.pdf"},
+			expectedPdfs:        []string{"file1.pdf"},
+			expectedErr:         false,
+			expectedInteractive: false,
+		},
+		{
+			name: "invalid file provided",
+			setup: func(tempDir string) {
+			},
+			args:                []string{"file1.pdf"},
+			expectedPdfs:        nil,
+			expectedErr:         true,
+			expectedInteractive: false,
+		},
+		{
+			name: "file and directory provided",
+			setup: func(tempDir string) {
+				file1 := filepath.Join(tempDir, "file1.pdf")
+				err := createValidPDF(file1)
+				assert.NoError(t, err)
+				err = os.Mkdir(filepath.Join(tempDir, "test"), 0755)
+				assert.NoError(t, err)
+			},
+			args:                []string{"file1.pdf", "test"},
+			expectedPdfs:        nil,
+			expectedErr:         true,
+			expectedInteractive: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tempDir := t.TempDir()
+			err := os.Chdir(tempDir)
+			assert.NoError(t, err)
+
+			if tt.setup != nil {
+				tt.setup(tempDir)
+			}
+
+			fileUtils := NewFileUtils(nil)
+			fileUtils.args = tt.args
+			pdfs, interactive, err := fileUtils.CheckProvidedArgs()
+
+			if tt.expectedErr {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+			}
+
+			assert.Equal(t, tt.expectedPdfs, pdfs)
+
+			switch tt.expectedInteractive {
+			case true:
+				assert.True(t, interactive, "expected interactive to be true")
+			case false:
+				assert.False(t, interactive, "expected interactive to be false")
+			}
+		})
+	}
 }

@@ -40,26 +40,18 @@ var mergeCmd = &cobra.Command{
 		fileUtils := utils.NewFileUtils(args)
 
 		// check if any files/folders are provided
-		pdfs, interactive, err := fileUtils.CheckProvidedArgs(args)
+		pdfs, interactive, err := fileUtils.CheckProvidedArgs()
 		if err != nil {
-			fmt.Fprintln(cmd.OutOrStdout(), errorStyle.Render(err.Error()))
+			cmd.PrintErrln(errorStyle.Render(err.Error()))
 			return
 		}
 
 		if interactive {
 			for {
-				p := tea.NewProgram(multiSelect.MultiSelectModel(pdfs, dir, "merge"))
-				result, err := p.Run()
+				selectedPdfs, err = multiSelect.MultiSelectInteractive(pdfs, dir, "merge")
 				if err != nil {
-					fmt.Println(errorStyle.Render(err.Error()))
-					return
+					cmd.PrintErrln(errorStyle.Render(err.Error()))
 				}
-
-				model := result.(multiSelect.Tmodel)
-				if model.Quit {
-					return
-				}
-				selectedPdfs = model.GetSelectedPDFs()
 
 				if len(selectedPdfs) <= 1 {
 					continue
@@ -70,7 +62,7 @@ var mergeCmd = &cobra.Command{
 
 		reorder, err := cmd.Flags().GetBool("order")
 		if err != nil {
-			fmt.Println(errorStyle.Render(err.Error()))
+			cmd.PrintErrln(errorStyle.Render(err.Error()))
 			return
 		}
 
@@ -78,12 +70,13 @@ var mergeCmd = &cobra.Command{
 			selectedPdfs = pdfs
 		}
 
+		// TODO: Break this into a smaller function
 		// reordering of the pdfs
 		if reorder {
 			r := tea.NewProgram(multiReorder.MultiReorderModel(selectedPdfs, "merge"))
 			result, err := r.Run()
 			if err != nil {
-				fmt.Println(errorStyle.Render(err.Error()))
+				cmd.PrintErrln(errorStyle.Render(err.Error()))
 				return
 			}
 
@@ -99,7 +92,7 @@ var mergeCmd = &cobra.Command{
 
 		name, err := cmd.Flags().GetString("name")
 		if err != nil {
-			fmt.Println(errorStyle.Render(err.Error()))
+			cmd.PrintErrln(errorStyle.Render(err.Error()))
 			return
 		}
 
@@ -109,17 +102,17 @@ var mergeCmd = &cobra.Command{
 
 		err = pdfProcessor.MergePdfs(pdfWithFullPath, name)
 		if err != nil {
-			fmt.Fprintln(cmd.OutOrStdout(), errorStyle.Render(err.Error()))
+			cmd.PrintErrln(errorStyle.Render(err.Error()))
 			return
 		}
 
 		saveDir, err := fileUtils.GetCurrentWorkingDir()
 		if err != nil {
-			fmt.Println(errorStyle.Render(err.Error()))
+			cmd.PrintErrln(errorStyle.Render(err.Error()))
 			return
 		}
 		complete := fmt.Sprintf("PDF files merged successfully to: %s/%s", saveDir, name)
-		fmt.Fprintln(cmd.OutOrStdout(), infoStyle.Render(complete))
+		cmd.PrintErrln(infoStyle.Render(complete))
 	},
 }
 
