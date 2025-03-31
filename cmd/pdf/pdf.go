@@ -17,7 +17,7 @@ func NewPDFProcessor(fileUtils *utils.FileUtils) *PDFProcessor {
 	}
 }
 
-func (p *PDFProcessor) PdfExtension(file string) string {
+func (p *PDFProcessor) pdfExtension(file string) string {
 	return file + ".pdf"
 }
 
@@ -31,6 +31,7 @@ func (p *PDFProcessor) validateInputFiles(inputFilesNames []string) error {
 }
 
 func (p *PDFProcessor) MergePdfs(pdfs []string, outputPdf string) error {
+	outputPdf = p.pdfExtension(outputPdf)
 	if err := p.validateInputFiles(pdfs); err != nil {
 		return err
 	}

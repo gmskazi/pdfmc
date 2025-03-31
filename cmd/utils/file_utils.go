@@ -7,10 +7,17 @@ import (
 	"strings"
 )
 
-type FileUtils struct{}
+type FileUtils struct {
+	pdfs        []string
+	interactive bool
+	dir         string
+	args        []string
+}
 
-func NewFileUtils() *FileUtils {
-	return &FileUtils{}
+func NewFileUtils(args []string) *FileUtils {
+	return &FileUtils{
+		args: args,
+	}
 }
 
 func (f *FileUtils) IsDirectory(path string) bool {
@@ -22,19 +29,20 @@ func (f *FileUtils) IsDirectory(path string) bool {
 }
 
 func (f *FileUtils) GetCurrentWorkingDir() (string, error) {
-	dir, err := os.Getwd()
+	var err error
+	f.dir, err = os.Getwd()
 	if err != nil {
 		return "", fmt.Errorf("failed to get currect working dir: %w", err)
 	}
 
-	return dir, nil
+	return f.dir, nil
 }
 
 func (f *FileUtils) ReadDirectory(directory string) ([]os.DirEntry, error) {
 	return os.ReadDir(directory)
 }
 
-func (f *FileUtils) FilterPdfFiles(directory string, entries []os.DirEntry) []string {
+func (f *FileUtils) FilterPdfFiles(entries []os.DirEntry) []string {
 	var pdfFiles []string
 
 	for _, entry := range entries {
@@ -45,14 +53,15 @@ func (f *FileUtils) FilterPdfFiles(directory string, entries []os.DirEntry) []st
 			pdfFiles = append(pdfFiles, entry.Name())
 		}
 	}
+	f.pdfs = pdfFiles
 
-	return pdfFiles
+	return f.pdfs
 }
 
 func (f *FileUtils) GetPdfFilesFromDir(directory string) []string {
 	entries, _ := f.ReadDirectory(directory)
 
-	return f.FilterPdfFiles(directory, entries)
+	return f.FilterPdfFiles(entries)
 }
 
 func (f *FileUtils) AddFullPathToPdfs(dir string, pdfs []string) []string {
@@ -62,4 +71,36 @@ func (f *FileUtils) AddFullPathToPdfs(dir string, pdfs []string) []string {
 		fullPaths = append(fullPaths, filepath.Join(dir, pdf))
 	}
 	return fullPaths
+}
+
+func (f *FileUtils) CheckProvidedArgs() (pdfs []string, dir string, interactive bool, err error) {
+	// check if any files/folders are provided
+	if len(f.args) == 0 {
+		f.interactive = true
+		f.dir, err = f.GetCurrentWorkingDir()
+		if err != nil {
+			return nil, f.dir, true, err
+		}
+		f.pdfs = f.GetPdfFilesFromDir(f.dir)
+		return f.pdfs, f.dir, f.interactive, nil
+
+	} else if len(f.args) == 1 && f.IsDirectory(f.args[0]) {
+		f.interactive = true
+		f.dir = f.args[0]
+		f.pdfs = f.GetPdfFilesFromDir(f.dir)
+		return f.pdfs, f.dir, f.interactive, nil
+
+	} else {
+		f.interactive = false
+		f.pdfs = f.args
+		for _, pdf := range f.pdfs {
+			if _, err := os.Stat(pdf); os.IsNotExist(err) {
+				return nil, "", false, err
+			}
+			if info, err := os.Stat(pdf); err == nil && info.IsDir() {
+				return nil, "", false, fmt.Errorf("%s is a directory not a pdf", pdf)
+			}
+		}
+	}
+	return f.pdfs, f.dir, f.interactive, nil
 }
