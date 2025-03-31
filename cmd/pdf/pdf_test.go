@@ -3,6 +3,7 @@ package pdf
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/gmskazi/pdfmc/cmd/utils"
@@ -39,9 +40,10 @@ func TestMergedPdfs(t *testing.T) {
 	// Create temporary PDF files
 	// By using t.TempDir() ensures all temporary files are cleaned up.
 	temDir := t.TempDir()
-	inputFile1 := temDir + "/file1.pdf"
-	inputFile2 := temDir + "/file2.pdf"
-	outputfile := temDir + "/merged.pdf"
+	inputFile1 := filepath.Join(temDir, "file1.pdf")
+	inputFile2 := filepath.Join(temDir, "/file2.pdf")
+	customName := "merged"
+	outputfile := "merged.pdf"
 
 	// Create dummy pdfs
 	err := createValidPDF(inputFile1)
@@ -49,9 +51,9 @@ func TestMergedPdfs(t *testing.T) {
 	err = createValidPDF(inputFile2)
 	assert.NoError(t, err)
 
-	fileUtils := utils.NewFileUtils()
+	fileUtils := utils.NewFileUtils(nil)
 	pdfProcssor := NewPDFProcessor(fileUtils)
-	err = pdfProcssor.MergePdfs([]string{inputFile1, inputFile2}, outputfile)
+	err = pdfProcssor.MergePdfs([]string{inputFile1, inputFile2}, customName)
 	assert.NoError(t, err)
 
 	_, err = os.Stat(outputfile)
@@ -59,6 +61,8 @@ func TestMergedPdfs(t *testing.T) {
 }
 
 func TestValidateInputFiles(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name          string
 		setup         func(tempDir string)
@@ -112,7 +116,7 @@ func TestValidateInputFiles(t *testing.T) {
 				tt.setup(tempDir)
 			}
 
-			fileUtils := utils.NewFileUtils()
+			fileUtils := utils.NewFileUtils(nil)
 			pdfProcessor := NewPDFProcessor(fileUtils)
 
 			pdfs := fileUtils.GetPdfFilesFromDir(tempDir)
@@ -133,9 +137,9 @@ func TestValidateInputFiles(t *testing.T) {
 
 func TestPdfExtension(t *testing.T) {
 	expected := "testing.pdf"
-	fileUtils := utils.NewFileUtils()
+	fileUtils := utils.NewFileUtils(nil)
 	pdfProcessor := NewPDFProcessor(fileUtils)
-	actual := pdfProcessor.PdfExtension("testing")
+	actual := pdfProcessor.pdfExtension("testing")
 
 	if actual != expected {
 		t.Errorf("Expected: %s got %s", expected, actual)

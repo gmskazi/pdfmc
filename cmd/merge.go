@@ -9,7 +9,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/gmskazi/pdfmc/cmd/pdf"
 	"github.com/gmskazi/pdfmc/cmd/ui/multiReorder"
@@ -32,57 +31,39 @@ var mergeCmd = &cobra.Command{
 	Long:  `This is a tool to merge PDFs together.`,
 	Args:  cobra.ArbitraryArgs,
 	Run: func(cmd *cobra.Command, args []string) {
-		var pdfs []string
-		var dir string
-		var selectedPdfs []string
-		var interactive bool
+		var (
+			selectedPdfs []string
+			quit         bool
+		)
 
-		fileUtils := utils.NewFileUtils()
+		name, err := cmd.Flags().GetString("name")
+		if err != nil {
+			cmd.PrintErrln(errorStyle.Render(err.Error()))
+			return
+		}
+
+		reorder, err := cmd.Flags().GetBool("order")
+		if err != nil {
+			cmd.PrintErrln(errorStyle.Render(err.Error()))
+			return
+		}
+
+		fileUtils := utils.NewFileUtils(args)
 
 		// check if any files/folders are provided
-		if len(args) == 0 {
-			interactive = true
-			dir, err := fileUtils.GetCurrentWorkingDir()
-			if err != nil {
-				fmt.Println(errorStyle.Render(err.Error()))
-				return
-			}
-			pdfs = fileUtils.GetPdfFilesFromDir(dir)
-
-		} else if len(args) == 1 && fileUtils.IsDirectory(args[0]) {
-			interactive = true
-			dir = args[0]
-			pdfs = fileUtils.GetPdfFilesFromDir(dir)
-
-		} else {
-			interactive = false
-			pdfs = args
-			for _, pdf := range pdfs {
-				if _, err := os.Stat(pdf); os.IsNotExist(err) {
-					fmt.Println(errorStyle.Render(fmt.Sprintf("File '%s' does not exists", pdf)))
-					os.Exit(1)
-				}
-				if info, err := os.Stat(pdf); err == nil && info.IsDir() {
-					fmt.Println(errorStyle.Render(fmt.Sprintf("'%s' is a directory, not a file", pdf)))
-					os.Exit(1)
-				}
-			}
+		pdfs, dir, interactive, err := fileUtils.CheckProvidedArgs()
+		if err != nil {
+			cmd.PrintErrln(errorStyle.Render(err.Error()))
+			return
 		}
 
 		if interactive {
 			for {
-				p := tea.NewProgram(multiSelect.MultiSelectModel(pdfs, dir, "merge"))
-				result, err := p.Run()
-				if err != nil {
-					fmt.Println(errorStyle.Render(err.Error()))
+				selectedPdfs, quit, err = multiSelect.MultiSelectInteractive(pdfs, dir, "merge")
+				if err != nil || quit {
+					cmd.PrintErrln(errorStyle.Render(err.Error()))
 					return
 				}
-
-				model := result.(multiSelect.Tmodel)
-				if model.Quit {
-					os.Exit(0)
-				}
-				selectedPdfs = model.GetSelectedPDFs()
 
 				if len(selectedPdfs) <= 1 {
 					continue
@@ -91,58 +72,36 @@ var mergeCmd = &cobra.Command{
 			}
 		}
 
-		reorder, err := cmd.Flags().GetBool("order")
-		if err != nil {
-			fmt.Println(errorStyle.Render(err.Error()))
-			return
-		}
-
 		if !interactive {
 			selectedPdfs = pdfs
 		}
 
 		// reordering of the pdfs
 		if reorder {
-			r := tea.NewProgram(multiReorder.MultiReorderModel(selectedPdfs, "merge"))
-			result, err := r.Run()
-			if err != nil {
-				fmt.Println(errorStyle.Render(err.Error()))
+			selectedPdfs, quit, err = multiReorder.MultiReorderInteractive(selectedPdfs, "merge")
+			if err != nil || quit {
+				cmd.PrintErrln(errorStyle.Render(err.Error()))
 				return
 			}
-
-			reorderModel := result.(multiReorder.Tmodel)
-			if reorderModel.Quit {
-				os.Exit(0)
-			}
-
-			selectedPdfs = reorderModel.GetOrderedPdfs()
 		}
 
 		pdfWithFullPath := fileUtils.AddFullPathToPdfs(dir, selectedPdfs)
 
-		name, err := cmd.Flags().GetString("name")
-		if err != nil {
-			fmt.Println(errorStyle.Render(err.Error()))
-			return
-		}
-
 		pdfProcessor := pdf.NewPDFProcessor(fileUtils)
-
-		name = pdfProcessor.PdfExtension(name)
 
 		err = pdfProcessor.MergePdfs(pdfWithFullPath, name)
 		if err != nil {
-			fmt.Println(errorStyle.Render(err.Error()))
+			cmd.PrintErrln(errorStyle.Render(err.Error()))
 			return
 		}
 
 		saveDir, err := fileUtils.GetCurrentWorkingDir()
 		if err != nil {
-			fmt.Println(errorStyle.Render(err.Error()))
+			cmd.PrintErrln(errorStyle.Render(err.Error()))
 			return
 		}
 		complete := fmt.Sprintf("PDF files merged successfully to: %s/%s", saveDir, name)
-		fmt.Println(infoStyle.Render(complete))
+		cmd.PrintErrln(infoStyle.Render(complete))
 	},
 }
 

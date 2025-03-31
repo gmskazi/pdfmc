@@ -148,3 +148,20 @@ func (m Tmodel) View() string {
 
 	return b.String()
 }
+
+func MultiSelectInteractive(pdfs []string, dir string, logo string) (selectedPdfs []string, quit bool, err error) {
+	p := tea.NewProgram(MultiSelectModel(pdfs, dir, logo))
+	result, err := p.Run()
+	if err != nil {
+		return nil, false, err
+	}
+
+	model := result.(Tmodel)
+	if model.Quit {
+		return nil, true, fmt.Errorf("user quit the program")
+	}
+
+	selectedPdfs = model.GetSelectedPDFs()
+
+	return selectedPdfs, false, nil
+}
