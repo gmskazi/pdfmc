@@ -107,3 +107,20 @@ func (m Tmodel) View() string {
 
 	return b.String()
 }
+
+func MultiReorderInteractive(pdfs []string, logo string) (reorderedPdfs []string, quit bool, err error) {
+	r := tea.NewProgram(MultiReorderModel(pdfs, logo))
+	result, err := r.Run()
+	if err != nil {
+		return nil, false, err
+	}
+
+	model := result.(Tmodel)
+	if model.Quit {
+		return nil, true, fmt.Errorf("user quit the program")
+	}
+
+	selectedPdfs := model.GetOrderedPdfs()
+
+	return selectedPdfs, false, nil
+}

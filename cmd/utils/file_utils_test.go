@@ -281,7 +281,7 @@ func TestCheckProvidedArgs(t *testing.T) {
 
 			fileUtils := NewFileUtils(nil)
 			fileUtils.args = tt.args
-			pdfs, interactive, err := fileUtils.CheckProvidedArgs()
+			pdfs, _, interactive, err := fileUtils.CheckProvidedArgs()
 
 			if tt.expectedErr {
 				assert.Error(t, err)

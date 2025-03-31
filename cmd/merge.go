@@ -9,7 +9,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/gmskazi/pdfmc/cmd/pdf"
 	"github.com/gmskazi/pdfmc/cmd/ui/multiReorder"
@@ -32,15 +31,27 @@ var mergeCmd = &cobra.Command{
 	Long:  `This is a tool to merge PDFs together.`,
 	Args:  cobra.ArbitraryArgs,
 	Run: func(cmd *cobra.Command, args []string) {
-		var pdfs []string
-		var dir string
-		var selectedPdfs []string
-		var interactive bool
+		var (
+			selectedPdfs []string
+			quit         bool
+		)
+
+		name, err := cmd.Flags().GetString("name")
+		if err != nil {
+			cmd.PrintErrln(errorStyle.Render(err.Error()))
+			return
+		}
+
+		reorder, err := cmd.Flags().GetBool("order")
+		if err != nil {
+			cmd.PrintErrln(errorStyle.Render(err.Error()))
+			return
+		}
 
 		fileUtils := utils.NewFileUtils(args)
 
 		// check if any files/folders are provided
-		pdfs, interactive, err := fileUtils.CheckProvidedArgs()
+		pdfs, dir, interactive, err := fileUtils.CheckProvidedArgs()
 		if err != nil {
 			cmd.PrintErrln(errorStyle.Render(err.Error()))
 			return
@@ -48,9 +59,10 @@ var mergeCmd = &cobra.Command{
 
 		if interactive {
 			for {
-				selectedPdfs, err = multiSelect.MultiSelectInteractive(pdfs, dir, "merge")
-				if err != nil {
+				selectedPdfs, quit, err = multiSelect.MultiSelectInteractive(pdfs, dir, "merge")
+				if err != nil || quit {
 					cmd.PrintErrln(errorStyle.Render(err.Error()))
+					return
 				}
 
 				if len(selectedPdfs) <= 1 {
@@ -60,45 +72,22 @@ var mergeCmd = &cobra.Command{
 			}
 		}
 
-		reorder, err := cmd.Flags().GetBool("order")
-		if err != nil {
-			cmd.PrintErrln(errorStyle.Render(err.Error()))
-			return
-		}
-
 		if !interactive {
 			selectedPdfs = pdfs
 		}
 
-		// TODO: Break this into a smaller function
 		// reordering of the pdfs
 		if reorder {
-			r := tea.NewProgram(multiReorder.MultiReorderModel(selectedPdfs, "merge"))
-			result, err := r.Run()
-			if err != nil {
+			selectedPdfs, quit, err = multiReorder.MultiReorderInteractive(selectedPdfs, "merge")
+			if err != nil || quit {
 				cmd.PrintErrln(errorStyle.Render(err.Error()))
 				return
 			}
-
-			reorderModel := result.(multiReorder.Tmodel)
-			if reorderModel.Quit {
-				return
-			}
-
-			selectedPdfs = reorderModel.GetOrderedPdfs()
 		}
 
 		pdfWithFullPath := fileUtils.AddFullPathToPdfs(dir, selectedPdfs)
 
-		name, err := cmd.Flags().GetString("name")
-		if err != nil {
-			cmd.PrintErrln(errorStyle.Render(err.Error()))
-			return
-		}
-
 		pdfProcessor := pdf.NewPDFProcessor(fileUtils)
-
-		name = pdfProcessor.PdfExtension(name)
 
 		err = pdfProcessor.MergePdfs(pdfWithFullPath, name)
 		if err != nil {
