@@ -166,3 +166,19 @@ func (m Tmodel) GetPassword() string {
 func (m Tmodel) checkPasswords(password, passwordConfirmation string) bool {
 	return password == passwordConfirmation
 }
+
+func TextinputInteractive() (password string, quit bool, err error) {
+	p := tea.NewProgram(TextinputModel())
+	result, err := p.Run()
+	if err != nil {
+		return "", false, err
+	}
+
+	tmodel := result.(Tmodel)
+	if tmodel.Quit {
+		return "", true, fmt.Errorf("user quit the program")
+	}
+
+	pword := tmodel.GetPassword()
+	return pword, false, nil
+}

@@ -101,7 +101,7 @@ var mergeCmd = &cobra.Command{
 			return
 		}
 		complete := fmt.Sprintf("PDF files merged successfully to: %s/%s", saveDir, name)
-		cmd.PrintErrln(infoStyle.Render(complete))
+		cmd.Println(infoStyle.Render(complete))
 	},
 }
 

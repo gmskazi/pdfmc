@@ -2,9 +2,11 @@ package pdf
 
 import (
 	"errors"
+	"path/filepath"
 
 	"github.com/gmskazi/pdfmc/cmd/utils"
 	"github.com/pdfcpu/pdfcpu/pkg/api"
+	"github.com/pdfcpu/pdfcpu/pkg/pdfcpu/model"
 )
 
 type PDFProcessor struct {
@@ -44,4 +46,21 @@ func (p *PDFProcessor) MergePdfs(pdfs []string, outputPdf string) error {
 		return err
 	}
 	return nil
+}
+
+func (p *PDFProcessor) EncryptPdf(pdf string, dir string, password string) (encryptedPdf string, err error) {
+	conf := model.NewAESConfiguration(password, password, 256)
+
+	encryptedPdfName := "encrypted-" + pdf
+
+	err = api.EncryptFile(filepath.Join(dir, pdf), encryptedPdfName, conf)
+	if err != nil {
+		return "", err
+	}
+
+	err = api.ValidateFile(encryptedPdfName, conf)
+	if err != nil {
+		return "", err
+	}
+	return encryptedPdfName, nil
 }
