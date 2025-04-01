@@ -35,6 +35,7 @@ startxref
 	return os.WriteFile(filepath, []byte(content), 0644)
 }
 
+// Only testing non interactive mode for now
 func TestMergeCommand(t *testing.T) {
 	tests := []struct {
 		name           string

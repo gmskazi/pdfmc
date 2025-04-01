@@ -85,7 +85,7 @@ var encryptCmd = &cobra.Command{
 				return
 			}
 
-			complete := fmt.Sprintf("PDF files encrypted successfully to: %s/%s", saveDir, encryptedPdf)
+			complete := fmt.Sprintf("PDF file encrypted successfully to: %s/%s", saveDir, encryptedPdf)
 			cmd.Println(selectedStyle.Render(complete))
 		}
 	},
