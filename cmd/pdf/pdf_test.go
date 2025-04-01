@@ -145,3 +145,50 @@ func TestPdfExtension(t *testing.T) {
 		t.Errorf("Expected: %s got %s", expected, actual)
 	}
 }
+
+func TestEncryptPdf(t *testing.T) {
+	tests := []struct {
+		name         string
+		pdf          string
+		password     string
+		expectedFile string
+		expectedErr  bool
+		setupFile    bool
+	}{
+		{
+			name:         "successful encryption",
+			pdf:          "test.pdf",
+			password:     "test",
+			expectedFile: "encrypted-test.pdf",
+			expectedErr:  false,
+			setupFile:    true,
+		},
+	}
+
+	for _, tt := range tests {
+		tempDir := t.TempDir()
+
+		if tt.setupFile {
+			testPdf := filepath.Join(tempDir, tt.pdf)
+			err := createValidPDF(testPdf)
+			if err != nil {
+				t.Fatalf("failed to create test.pdf: %v", err)
+			}
+
+			processor := NewPDFProcessor(utils.NewFileUtils(nil))
+			encryptedPdf, err := processor.EncryptPdf(tt.pdf, tempDir, tt.password)
+			if err != nil {
+				t.Fatalf("failed to encrypt PDF: %v", err)
+			}
+
+			if tt.expectedErr {
+				assert.Error(t, err)
+				assert.Empty(t, encryptedPdf)
+			} else {
+				assert.NoError(t, err)
+			}
+			assert.Equal(t, tt.expectedFile, encryptedPdf)
+
+		}
+	}
+}

@@ -9,12 +9,10 @@ import (
 	"path/filepath"
 	"strings"
 
-	tea "github.com/charmbracelet/bubbletea"
+	"github.com/gmskazi/pdfmc/cmd/pdf"
 	"github.com/gmskazi/pdfmc/cmd/ui/multiSelect"
 	textInputs "github.com/gmskazi/pdfmc/cmd/ui/textinputs"
 	"github.com/gmskazi/pdfmc/cmd/utils"
-	"github.com/pdfcpu/pdfcpu/pkg/api"
-	"github.com/pdfcpu/pdfcpu/pkg/pdfcpu/model"
 	"github.com/spf13/cobra"
 )
 
@@ -25,119 +23,70 @@ var encryptCmd = &cobra.Command{
 	Long:  `This is a tool for encrypting PDF files.`,
 	Args:  cobra.ArbitraryArgs,
 	Run: func(cmd *cobra.Command, args []string) {
-		var pdfs []string
-		var dir string
-		var selectedPdfs []string
-		var interactive bool
-		var pword string
-
-		fileUtils := utils.NewFileUtils(args)
-
-		// check if any files/folders are provided
-		if len(args) == 0 {
-			interactive = true
-			dir, err := fileUtils.GetCurrentWorkingDir()
-			if err != nil {
-				fmt.Println(errorStyle.Render(err.Error()))
-				return
-			}
-			pdfs = fileUtils.GetPdfFilesFromDir(dir)
-
-		} else if len(args) == 1 && fileUtils.IsDirectory(args[0]) {
-			interactive = true
-			dir = args[0]
-			pdfs = fileUtils.GetPdfFilesFromDir(dir)
-
-		} else {
-			interactive = false
-			pdfs = args
-			for _, pdf := range pdfs {
-				if _, err := os.Stat(pdf); os.IsNotExist(err) {
-					fmt.Println(errorStyle.Render(fmt.Sprintf("File '%s' does not exists", pdf)))
-					os.Exit(1)
-				}
-				if info, err := os.Stat(pdf); err == nil && info.IsDir() {
-					fmt.Println(errorStyle.Render(fmt.Sprintf("'%s' is a directory, not a file", pdf)))
-					os.Exit(1)
-				}
-			}
-		}
-
-		if interactive {
-			mSelect := tea.NewProgram(multiSelect.MultiSelectModel(pdfs, dir, "encrypt"))
-			result, err := mSelect.Run()
-			if err != nil {
-				fmt.Println(errorStyle.Render(err.Error()))
-				return
-			}
-
-			mSelectModel := result.(multiSelect.Tmodel)
-			if mSelectModel.Quit {
-				os.Exit(0)
-			}
-
-			selectedPdfs = mSelectModel.GetSelectedPDFs()
-
-			if len(selectedPdfs) == 0 {
-				fmt.Println(infoStyle.Render("No PDFs were selected. Exiting."))
-				return
-			}
-		}
+		var (
+			selectedPdfs []string
+			pword        string
+			quit         bool
+		)
 
 		pword, err := cmd.Flags().GetString("password")
 		if err != nil {
-			fmt.Println(errorStyle.Render(err.Error()))
+			cmd.PrintErrln(errorStyle.Render(err.Error()))
 			return
 		}
 
-		if pword == "" {
-			p := tea.NewProgram(textInputs.TextinputModel())
-			result, err := p.Run()
-			if err != nil {
-				fmt.Println(errorStyle.Render(err.Error()))
+		fileUtils := utils.NewFileUtils(args)
+		pdfProcessor := pdf.NewPDFProcessor(fileUtils)
+
+		// check if any files/folders are provided
+		pdfs, dir, interactive, err := fileUtils.CheckProvidedArgs()
+		if err != nil {
+			cmd.PrintErrln(errorStyle.Render(err.Error()))
+			return
+		}
+
+		if interactive {
+			selectedPdfs, quit, err = multiSelect.MultiSelectInteractive(pdfs, dir, "encrypt")
+			if err != nil || quit {
+				cmd.PrintErrln(errorStyle.Render(err.Error()))
 				return
 			}
 
-			tmodel := result.(textInputs.Tmodel)
-			if tmodel.Quit {
-				os.Exit(0)
+			if len(selectedPdfs) == 0 {
+				cmd.PrintErrln(infoStyle.Render("No PDFs were selected. Exiting."))
+				return
 			}
+		}
 
-			pword = tmodel.GetPassword()
+		if pword == "" {
+			pword, quit, err = textInputs.TextinputInteractive()
+			if err != nil || quit {
+				cmd.PrintErrln(errorStyle.Render(err.Error()))
+				return
+			}
 
 			fmt.Println()
 		}
-
-		conf := model.NewAESConfiguration(pword, pword, 256)
 
 		if !interactive {
 			selectedPdfs = pdfs
 		}
 
-		for _, pdf := range selectedPdfs {
-			encryptedPdfName := "encrypted-" + pdf
-			if dir == "" {
-				err := api.EncryptFile(pdf, encryptedPdfName, conf)
-				if err != nil {
-					fmt.Println(errorStyle.Render(err.Error()))
-					return
-				}
-			} else {
-				err := api.EncryptFile(dir+"/"+pdf, encryptedPdfName, conf)
-				if err != nil {
-					fmt.Println(errorStyle.Render(err.Error()))
-					return
-				}
-			}
+		saveDir, err := fileUtils.GetCurrentWorkingDir()
+		if err != nil {
+			cmd.PrintErrln(errorStyle.Render(err.Error()))
+			return
+		}
 
-			saveDir, err := fileUtils.GetCurrentWorkingDir()
+		for _, pdf := range selectedPdfs {
+			encryptedPdf, err := pdfProcessor.EncryptPdf(pdf, dir, pword)
 			if err != nil {
-				fmt.Println(errorStyle.Render(err.Error()))
+				cmd.PrintErrln(errorStyle.Render(err.Error()))
 				return
 			}
 
-			complete := fmt.Sprintf("PDF files encrypted successfully to: %s/%s", saveDir, encryptedPdfName)
-			fmt.Println(selectedStyle.Render(complete))
+			complete := fmt.Sprintf("PDF file encrypted successfully to: %s/%s", saveDir, encryptedPdf)
+			cmd.Println(selectedStyle.Render(complete))
 		}
 	},
 }
