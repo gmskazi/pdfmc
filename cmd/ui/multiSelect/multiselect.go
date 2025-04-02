@@ -38,6 +38,8 @@ type Tmodel struct {
 	selected  map[int]struct{}
 	logo      string
 	Quit      bool
+	autoQuit  bool
+	ErrMsg    string
 }
 
 func MultiSelectModel(pdfs []string, directory string, logo string) Tmodel {
@@ -49,7 +51,19 @@ func MultiSelectModel(pdfs []string, directory string, logo string) Tmodel {
 	}
 }
 
+type autoQuitMsg struct{}
+
 func (m Tmodel) Init() tea.Cmd {
+	// Set error and autoQuit if conditions aren't met
+	if m.logo == "merge" && len(m.pdfs) <= 1 {
+		return func() tea.Msg {
+			return autoQuitMsg{}
+		}
+	} else if m.logo == "encrypt" && len(m.pdfs) == 0 {
+		return func() tea.Msg {
+			return autoQuitMsg{}
+		}
+	}
 	return tea.ClearScreen
 }
 
@@ -64,6 +78,14 @@ func (m Tmodel) GetSelectedPDFs() []string {
 
 func (m Tmodel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
+	case autoQuitMsg:
+		m.autoQuit = true
+		if m.logo == "merge" && len(m.pdfs) <= 1 {
+			m.ErrMsg = "Error: Need at least 2 PDFs to merge"
+		} else {
+			m.ErrMsg = "Error: No PDFs found to encrypt"
+		}
+		return m, tea.Quit
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "ctrl+c", "esc":
@@ -98,25 +120,26 @@ func (m Tmodel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m Tmodel) View() string {
 	var b strings.Builder
+
 	switch m.logo {
 	case "merge":
 		b.WriteString(defaultStyle.Render(logoMerge))
-		if len(m.pdfs) <= 1 {
-			fmt.Fprint(&b, "\n\n")
-			b.WriteString(errorStyle.Render("Please provide more than one PDF files. Press 'esc' to exit."))
-			return b.String()
-		}
 		fmt.Fprint(&b, "\n\n")
+	case "encrypt":
+		b.WriteString(defaultStyle.Render(logoEncrypt))
+		fmt.Fprint(&b, "\n\n")
+	}
+
+	if m.ErrMsg != "" {
+		b.WriteString(errorStyle.Render(m.ErrMsg))
+		return b.String()
+	}
+
+	switch m.logo {
+	case "merge":
 		b.WriteString(defaultStyle.Render("Which PDFs do you want to merge together?"))
 
 	case "encrypt":
-		b.WriteString(defaultStyle.Render(logoEncrypt))
-		if len(m.pdfs) == 0 {
-			fmt.Fprint(&b, "\n\n")
-			b.WriteString(errorStyle.Render("No PDF files found. Press 'esc' to exit."))
-			return b.String()
-		}
-		fmt.Fprint(&b, "\n\n")
 		b.WriteString(defaultStyle.Render("Which PDFs do you want to Encrypt?"))
 	}
 
@@ -157,8 +180,12 @@ func MultiSelectInteractive(pdfs []string, dir string, logo string) (selectedPdf
 	}
 
 	model := result.(Tmodel)
+	if model.autoQuit {
+		return nil, true, fmt.Errorf("%s", model.ErrMsg)
+	}
+
 	if model.Quit {
-		return nil, true, fmt.Errorf("user quit the program")
+		return nil, true, fmt.Errorf("operation canceled")
 	}
 
 	selectedPdfs = model.GetSelectedPDFs()

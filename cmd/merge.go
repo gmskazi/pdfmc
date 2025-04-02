@@ -1,5 +1,5 @@
 /*
-Copyright © 2025 NAME HERE Aito Nakajima
+Copyright © 2025 Aito Nakajima
 */
 package cmd
 
