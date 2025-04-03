@@ -13,6 +13,7 @@ import (
 	"github.com/gmskazi/pdfmc/cmd/pdf"
 	"github.com/gmskazi/pdfmc/cmd/ui/multiReorder"
 	"github.com/gmskazi/pdfmc/cmd/ui/multiSelect"
+	textInputs "github.com/gmskazi/pdfmc/cmd/ui/textinputs"
 	"github.com/gmskazi/pdfmc/cmd/utils"
 	"github.com/spf13/cobra"
 )
@@ -48,13 +49,17 @@ var mergeCmd = &cobra.Command{
 			return
 		}
 
-		password, err := cmd.Flags().GetString("encrypt")
+		encrypt, err := cmd.Flags().GetBool("encrypt")
 		if err != nil {
 			cmd.PrintErrln(errorStyle.Render(err.Error()))
 			return
 		}
 
-		// TODO: check if password is empty and prompt for password
+		pword, err := cmd.Flags().GetString("password")
+		if err != nil {
+			cmd.PrintErrln(errorStyle.Render(err.Error()))
+			return
+		}
 
 		fileUtils := utils.NewFileUtils(args)
 
@@ -95,9 +100,9 @@ var mergeCmd = &cobra.Command{
 
 		pdfWithFullPath := fileUtils.AddFullPathToPdfs(dir, selectedPdfs)
 
-		pdfProcessor := pdf.NewPDFProcessor(fileUtils)
+		pdfProcessor := pdf.NewPDFProcessor(fileUtils, "merge")
 
-		err = pdfProcessor.MergePdfs(pdfWithFullPath, name)
+		name, err = pdfProcessor.MergePdfs(pdfWithFullPath, name)
 		if err != nil {
 			cmd.PrintErrln(errorStyle.Render(err.Error()))
 			return
@@ -109,10 +114,26 @@ var mergeCmd = &cobra.Command{
 			return
 		}
 
-		// TODO: encrypt pdf file if flag is set
-		if password != "" {
-			name, err = pdfProcessor.EncryptPdf(name, saveDir, password)
+		// if the encrypt flag is set, ask for password interactively
+		if encrypt {
+			pword, quit, err = textInputs.TextinputInteractive()
+			if err != nil || quit {
+				cmd.PrintErrln(errorStyle.Render(err.Error()))
+				return
+			}
+
+			fmt.Println()
+		}
+
+		// encrypt pdf file if flag is set
+		if pword != "" {
+			nonEncryptedFile := name
+			name, err = pdfProcessor.EncryptPdf(nonEncryptedFile, saveDir, pword)
 			if err != nil {
+				cmd.PrintErrln(errorStyle.Render(err.Error()))
+				return
+			}
+			if err := os.Remove(nonEncryptedFile); err != nil {
 				cmd.PrintErrln(errorStyle.Render(err.Error()))
 				return
 			}
@@ -129,6 +150,7 @@ func init() {
 	mergeCmd.Flags().StringVarP(&name, "name", "n", "merged_output", "Custom name for the merged PDF files")
 	mergeCmd.Flags().StringP("password", "p", "", "Password to encrypt the PDF file.")
 	mergeCmd.Flags().BoolP("order", "o", false, "Reorder the PDF files before merging.")
+	mergeCmd.Flags().BoolP("encrypt", "e", false, "Encrypt the PDF file interatively.")
 
 	// autocomplete for files flag
 	mergeCmd.ValidArgsFunction = func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {

@@ -60,8 +60,8 @@ curl -L https://raw.githubusercontent.com/gmskazi/pdfmc/main/scripts/uninstall.s
 
 ---
 
-> Note: You may need to allow pdfmc to run on your mac the first time you run it. Navigate to System Settings > Privacy
-& Security > scroll down to the bottem and allow pdfmc to run.
+> Note: **For Mac users**, you may need to allow pdfmc to run on your mac the first time you run it.
+Navigate to System Settings > Privacy & Security > scroll down to the bottem and allow pdfmc to run.
 
 ## Run
 
@@ -107,6 +107,50 @@ pdfmc merge -n testname
 
 ```bash
 pdfmc merge -o
+```
+
+- Encrypt the PDF through the UI.
+
+> '--encrypt' or '-e' flag.
+
+```bash
+pdfmc merge -e
+```
+
+- Set the password so its non-interactive.
+
+> '--password' or '-p' flag.
+
+```bash
+pdfmc merge -p veryStr0ngPa33w0rd!
+```
+
+#### Example interactive mode
+
+> This will merge, order and encrypt the files interactively through the UI.
+
+```bash
+pdfmc merge -eo
+```
+
+Output file
+
+```bash
+merged_output.pdf
+```
+
+#### Example Non-interactive mode
+
+> This will merge, encrypt and set a custom filename non-interactively.
+
+```bash
+pdfmc merge file1.pdf file2.pdf -n testname -p veryStr0ngPa33w0rd!
+```
+
+Output file
+
+```bash
+testname.pdf
 ```
 
 ---
@@ -158,7 +202,6 @@ pdfmc encrypt file1.pdf file2.pdf -p veryStr0ngPa33w0rd!
 
 ## Completions
 
-<!-- TODO: Add a gif to demonstrate autocomplete -->
 ![completions](public/completions.gif)
 
 > Note: auto-completions will only work on MacOS or Linux.

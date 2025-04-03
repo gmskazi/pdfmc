@@ -36,7 +36,7 @@ var encryptCmd = &cobra.Command{
 		}
 
 		fileUtils := utils.NewFileUtils(args)
-		pdfProcessor := pdf.NewPDFProcessor(fileUtils)
+		pdfProcessor := pdf.NewPDFProcessor(fileUtils, "encrypt")
 
 		// check if any files/folders are provided
 		pdfs, dir, interactive, err := fileUtils.CheckProvidedArgs()

@@ -117,7 +117,7 @@ func MultiReorderInteractive(pdfs []string, logo string) (reorderedPdfs []string
 
 	model := result.(Tmodel)
 	if model.Quit {
-		return nil, true, fmt.Errorf("user quit the program")
+		return nil, true, fmt.Errorf("operation canceled")
 	}
 
 	selectedPdfs := model.GetOrderedPdfs()
