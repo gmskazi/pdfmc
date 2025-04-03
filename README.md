@@ -60,6 +60,9 @@ curl -L https://raw.githubusercontent.com/gmskazi/pdfmc/main/scripts/uninstall.s
 
 ---
 
+> Note: You may need to allow pdfmc to run on your mac the first time you run it. Navigate to System Settings > Privacy
+& Security > scroll down to the bottem and allow pdfmc to run.
+
 ## Run
 
 ### Merge PDFs
@@ -157,6 +160,8 @@ pdfmc encrypt file1.pdf file2.pdf -p veryStr0ngPa33w0rd!
 
 <!-- TODO: Add a gif to demonstrate autocomplete -->
 ![completions](public/completions.gif)
+
+> Note: auto-completions will only work on MacOS or Linux.
 
 Custom and normal completions that have been configured:
 
