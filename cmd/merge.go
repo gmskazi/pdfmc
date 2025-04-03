@@ -48,6 +48,14 @@ var mergeCmd = &cobra.Command{
 			return
 		}
 
+		password, err := cmd.Flags().GetString("encrypt")
+		if err != nil {
+			cmd.PrintErrln(errorStyle.Render(err.Error()))
+			return
+		}
+
+		// TODO: check if password is empty and prompt for password
+
 		fileUtils := utils.NewFileUtils(args)
 
 		// check if any files/folders are provided
@@ -100,6 +108,16 @@ var mergeCmd = &cobra.Command{
 			cmd.PrintErrln(errorStyle.Render(err.Error()))
 			return
 		}
+
+		// TODO: encrypt pdf file if flag is set
+		if password != "" {
+			name, err = pdfProcessor.EncryptPdf(name, saveDir, password)
+			if err != nil {
+				cmd.PrintErrln(errorStyle.Render(err.Error()))
+				return
+			}
+		}
+
 		complete := fmt.Sprintf("PDF files merged successfully to: %s/%s", saveDir, name)
 		cmd.Println(infoStyle.Render(complete))
 	},
@@ -109,6 +127,7 @@ func init() {
 	rootCmd.AddCommand(mergeCmd)
 
 	mergeCmd.Flags().StringVarP(&name, "name", "n", "merged_output", "Custom name for the merged PDF files")
+	mergeCmd.Flags().StringP("password", "p", "", "Password to encrypt the PDF file.")
 	mergeCmd.Flags().BoolP("order", "o", false, "Reorder the PDF files before merging.")
 
 	// autocomplete for files flag
