@@ -186,7 +186,7 @@ Add the below to your '.zshrc' file
 # Custom completions
 fpath=(~/.zsh/completions $fpath)
 autoload -Uz compinit
-compinit -i
+compinit
 ```
 
 - Reload zsh
