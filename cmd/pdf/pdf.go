@@ -11,11 +11,13 @@ import (
 
 type PDFProcessor struct {
 	FileUtils *utils.FileUtils
+	logo      string
 }
 
-func NewPDFProcessor(fileUtils *utils.FileUtils) *PDFProcessor {
+func NewPDFProcessor(fileUtils *utils.FileUtils, logo string) *PDFProcessor {
 	return &PDFProcessor{
 		FileUtils: fileUtils,
+		logo:      logo,
 	}
 }
 
@@ -32,20 +34,20 @@ func (p *PDFProcessor) validateInputFiles(inputFilesNames []string) error {
 	return nil
 }
 
-func (p *PDFProcessor) MergePdfs(pdfs []string, outputPdf string) error {
-	outputPdf = p.pdfExtension(outputPdf)
+func (p *PDFProcessor) MergePdfs(pdfs []string, outputPdf string) (output string, err error) {
+	output = p.pdfExtension(outputPdf)
 	if err := p.validateInputFiles(pdfs); err != nil {
-		return err
+		return "", err
 	}
 
-	if err := api.MergeCreateFile(pdfs, outputPdf, false, nil); err != nil {
-		return err
+	if err := api.MergeCreateFile(pdfs, output, false, nil); err != nil {
+		return "", err
 	}
 
-	if err := api.ValidateFile(outputPdf, nil); err != nil {
-		return err
+	if err := api.ValidateFile(output, nil); err != nil {
+		return "", err
 	}
-	return nil
+	return output, nil
 }
 
 func (p *PDFProcessor) EncryptPdf(pdf string, dir string, password string) (encryptedPdf string, err error) {

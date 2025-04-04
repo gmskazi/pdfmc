@@ -10,7 +10,7 @@
 
 Pdfmc stands for PDF Merge Crypt.
 
-A simple PDF tool to merge and encrypt files, I've created this tool to learn more about golang,
+A simple PDF tool to merge and encrypt files, I've created this tool to learn more about [golang](https://go.dev/),
 [cobra](https://github.com/spf13/cobra), [bubbletea](https://github.com/charmbracelet/bubbletea) and
 [lipgloss](https://github.com/charmbracelet/lipgloss), but after creating it, I've started using it and added it to my
 toolkit. Hoping to add more functionality to it when I have the time.
@@ -60,8 +60,8 @@ curl -L https://raw.githubusercontent.com/gmskazi/pdfmc/main/scripts/uninstall.s
 
 ---
 
-> Note: You may need to allow pdfmc to run on your mac the first time you run it. Navigate to System Settings > Privacy
-& Security > scroll down to the bottem and allow pdfmc to run.
+> Note: **For Mac users**, you may need to allow pdfmc to run on your mac the first time you run it.
+Navigate to System Settings > Privacy & Security > scroll down to the bottem and allow pdfmc to run.
 
 ## Run
 
@@ -109,6 +109,52 @@ pdfmc merge -n testname
 pdfmc merge -o
 ```
 
+- Encrypt the PDF through the UI.
+
+> '--encrypt' or '-e' flag.
+
+```bash
+pdfmc merge -e
+```
+
+- Set the password so its non-interactive.
+
+> '--password' or '-p' flag.
+
+```bash
+pdfmc merge -p veryStr0ngPa33w0rd!
+```
+
+> Note: you can't use the --password and --encrypt flags together, you will need to use one or the other.
+
+#### Merge example interactive mode
+
+> This will merge, order and encrypt the files interactively through the UI.
+
+```bash
+pdfmc merge -eo
+```
+
+Output file
+
+```bash
+encrypt-merged_output.pdf
+```
+
+#### Merge example Non-interactive mode
+
+> This will merge, encrypt and set a custom filename non-interactively.
+
+```bash
+pdfmc merge file1.pdf file2.pdf -n testname -p veryStr0ngPa33w0rd!
+```
+
+Output file
+
+```bash
+encrypt-testname.pdf
+```
+
 ---
 
 ### Encrypt PDFs
@@ -150,7 +196,17 @@ The below option will use the UI for selecting the pdf files to encrypt.
 pdfmc encrypt -p veryStr0ngPa33w0rd!
 ```
 
-This option will will not using any UI and will encrypt the files automatically.
+#### Encrypt example interactive mode
+
+> Encrypt and set a password interactively through the UI.
+
+```bash
+pdfmc encrypt
+```
+
+#### Encrypt example non-interactive mode
+
+> Encrypt and set a password non-interactively.
 
 ```bash
 pdfmc encrypt file1.pdf file2.pdf -p veryStr0ngPa33w0rd!
@@ -158,7 +214,6 @@ pdfmc encrypt file1.pdf file2.pdf -p veryStr0ngPa33w0rd!
 
 ## Completions
 
-<!-- TODO: Add a gif to demonstrate autocomplete -->
 ![completions](public/completions.gif)
 
 > Note: auto-completions will only work on MacOS or Linux.

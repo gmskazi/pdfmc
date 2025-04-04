@@ -176,7 +176,7 @@ func TextinputInteractive() (password string, quit bool, err error) {
 
 	tmodel := result.(Tmodel)
 	if tmodel.Quit {
-		return "", true, fmt.Errorf("user quit the program")
+		return "", true, fmt.Errorf("operation canceled")
 	}
 
 	pword := tmodel.GetPassword()

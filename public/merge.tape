@@ -95,7 +95,7 @@ Enter
 Sleep 3s
 
 ## Run merge with all flags
-Type 'pdfmc merge -o -n testname'
+Type 'pdfmc merge -eon testname'
 Sleep 1s
 Enter
 Sleep 1s
@@ -112,6 +112,15 @@ Sleep 1s
 Type "kk"
 Sleep 1s
 Down 1
+Sleep 1s
+Enter
+# Set the password
+Type "test"
+Sleep 1s
+Enter
+Type "test"
+Sleep 1s
+Enter
 Sleep 1s
 Enter
 

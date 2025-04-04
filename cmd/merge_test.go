@@ -90,6 +90,25 @@ func TestMergeCommand(t *testing.T) {
 			checkFile:      true,
 		},
 		{
+			name: "Merge two PDF files with custom filename and password",
+			setup: func(t *testing.T, tempDir string) []string {
+				file1 := "file1.pdf"
+				file2 := "file2.pdf"
+
+				err := createValidPDF(filepath.Join(tempDir, file1))
+				assert.NoError(t, err, "failed to create file1.pdf: %v", err)
+				err = createValidPDF(filepath.Join(tempDir, file2))
+				assert.NoError(t, err, "failed to create file2.pdf: %v", err)
+
+				return []string{"merge", file1, file2, "-n", "testname", "-p", "test"}
+			},
+			fileOutput:     "encrypted-testname.pdf",
+			expectError:    false,
+			expectedOutput: "PDF files merged successfully to:",
+			checkFile:      true,
+		},
+
+		{
 			name: "Check if file and directory is provided",
 			setup: func(t *testing.T, tempDir string) []string {
 				file1 := "file1.pdf"
@@ -163,6 +182,7 @@ func TestMergeCommand(t *testing.T) {
 			}
 
 			assert.Contains(t, outputBuf.String(), tt.expectedOutput, "Unexpected output from command.")
+			// fmt.Println(outputBuf.String())
 
 			if tt.checkFile {
 				_, err := os.Stat(tt.fileOutput)

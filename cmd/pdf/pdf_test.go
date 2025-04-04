@@ -52,10 +52,11 @@ func TestMergedPdfs(t *testing.T) {
 	assert.NoError(t, err)
 
 	fileUtils := utils.NewFileUtils(nil)
-	pdfProcssor := NewPDFProcessor(fileUtils)
-	err = pdfProcssor.MergePdfs([]string{inputFile1, inputFile2}, customName)
+	pdfProcssor := NewPDFProcessor(fileUtils, "merge")
+	output, err := pdfProcssor.MergePdfs([]string{inputFile1, inputFile2}, customName)
 	assert.NoError(t, err)
 
+	assert.Equal(t, output, outputfile)
 	_, err = os.Stat(outputfile)
 	assert.NoError(t, err)
 }
@@ -117,7 +118,7 @@ func TestValidateInputFiles(t *testing.T) {
 			}
 
 			fileUtils := utils.NewFileUtils(nil)
-			pdfProcessor := NewPDFProcessor(fileUtils)
+			pdfProcessor := NewPDFProcessor(fileUtils, "merge")
 
 			pdfs := fileUtils.GetPdfFilesFromDir(tempDir)
 			fmt.Println(pdfs)
@@ -138,7 +139,7 @@ func TestValidateInputFiles(t *testing.T) {
 func TestPdfExtension(t *testing.T) {
 	expected := "testing.pdf"
 	fileUtils := utils.NewFileUtils(nil)
-	pdfProcessor := NewPDFProcessor(fileUtils)
+	pdfProcessor := NewPDFProcessor(fileUtils, "merge")
 	actual := pdfProcessor.pdfExtension("testing")
 
 	if actual != expected {
@@ -175,7 +176,7 @@ func TestEncryptPdf(t *testing.T) {
 				t.Fatalf("failed to create test.pdf: %v", err)
 			}
 
-			processor := NewPDFProcessor(utils.NewFileUtils(nil))
+			processor := NewPDFProcessor(utils.NewFileUtils(nil), "encrypt")
 			encryptedPdf, err := processor.EncryptPdf(tt.pdf, tempDir, tt.password)
 			if err != nil {
 				t.Fatalf("failed to encrypt PDF: %v", err)
