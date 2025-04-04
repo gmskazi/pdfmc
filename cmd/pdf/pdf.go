@@ -51,14 +51,9 @@ func (p *PDFProcessor) MergePdfs(pdfs []string, outputPdf string) (output string
 }
 
 func (p *PDFProcessor) EncryptPdf(pdf string, dir string, password string) (encryptedPdf string, err error) {
-	var encryptedPdfName string
 	conf := model.NewAESConfiguration(password, password, 256)
 
-	if p.logo == "encrypt" {
-		encryptedPdfName = "encrypted-" + pdf
-	} else {
-		encryptedPdfName = pdf
-	}
+	encryptedPdfName := "encrypted-" + pdf
 
 	err = api.EncryptFile(filepath.Join(dir, pdf), encryptedPdfName, conf)
 	if err != nil {

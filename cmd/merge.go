@@ -61,6 +61,10 @@ var mergeCmd = &cobra.Command{
 			return
 		}
 
+		if encrypt && pword != "" {
+			cmd.PrintErrln(errorStyle.Render("Please provide either the --password flag or use the --encrypt flag for interactive encryption."))
+			return
+		}
 		fileUtils := utils.NewFileUtils(args)
 
 		// check if any files/folders are provided
@@ -128,6 +132,7 @@ var mergeCmd = &cobra.Command{
 		// encrypt pdf file if flag is set
 		if pword != "" {
 			nonEncryptedFile := name
+			fmt.Println(name)
 			name, err = pdfProcessor.EncryptPdf(nonEncryptedFile, saveDir, pword)
 			if err != nil {
 				cmd.PrintErrln(errorStyle.Render(err.Error()))

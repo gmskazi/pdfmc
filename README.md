@@ -10,7 +10,7 @@
 
 Pdfmc stands for PDF Merge Crypt.
 
-A simple PDF tool to merge and encrypt files, I've created this tool to learn more about golang,
+A simple PDF tool to merge and encrypt files, I've created this tool to learn more about [golang](https://go.dev/),
 [cobra](https://github.com/spf13/cobra), [bubbletea](https://github.com/charmbracelet/bubbletea) and
 [lipgloss](https://github.com/charmbracelet/lipgloss), but after creating it, I've started using it and added it to my
 toolkit. Hoping to add more functionality to it when I have the time.
@@ -125,7 +125,9 @@ pdfmc merge -e
 pdfmc merge -p veryStr0ngPa33w0rd!
 ```
 
-#### Example interactive mode
+> Note: you can't use the --password and --encrypt flags together, you will need to use one or the other.
+
+#### Merge example interactive mode
 
 > This will merge, order and encrypt the files interactively through the UI.
 
@@ -136,10 +138,10 @@ pdfmc merge -eo
 Output file
 
 ```bash
-merged_output.pdf
+encrypt-merged_output.pdf
 ```
 
-#### Example Non-interactive mode
+#### Merge example Non-interactive mode
 
 > This will merge, encrypt and set a custom filename non-interactively.
 
@@ -150,7 +152,7 @@ pdfmc merge file1.pdf file2.pdf -n testname -p veryStr0ngPa33w0rd!
 Output file
 
 ```bash
-testname.pdf
+encrypt-testname.pdf
 ```
 
 ---
@@ -194,7 +196,17 @@ The below option will use the UI for selecting the pdf files to encrypt.
 pdfmc encrypt -p veryStr0ngPa33w0rd!
 ```
 
-This option will will not using any UI and will encrypt the files automatically.
+#### Encrypt example interactive mode
+
+> Encrypt and set a password interactively through the UI.
+
+```bash
+pdfmc encrypt
+```
+
+#### Encrypt example non-interactive mode
+
+> Encrypt and set a password non-interactively.
 
 ```bash
 pdfmc encrypt file1.pdf file2.pdf -p veryStr0ngPa33w0rd!
