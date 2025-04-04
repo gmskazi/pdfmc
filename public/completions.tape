@@ -76,28 +76,28 @@ Show
 ## completions
 Type "pdfmc"
 Tab
-Sleep 1s
+Sleep 0.5s
 Type "m"
-Sleep 1s
+Sleep 0.5s
 Tab
-Sleep 2s
+Sleep 1s
 Type "let"
 Tab @0.5s 3
 Space
-Sleep 1s
+Sleep 0.5s
 Type "l"
 Tab
-Sleep 1s
+Sleep 0.5s
 Space
 Type "-"
-Sleep 1s
+Sleep 0.5s
 Tab
-Sleep 1s
+Sleep 0.5s
 Type "n test "
-Sleep 1s
+Sleep 0.5s
 Type "-"
 Tab
-Sleep 1s
+Sleep 0.5s
 Type "o"
 Sleep 3s
 
