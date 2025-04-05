@@ -13,6 +13,41 @@ import (
 	"github.com/spf13/cobra"
 )
 
+func handleError(cmd *cobra.Command, err error) bool {
+	if err != nil {
+		cmd.PrintErrln(errorStyle.Render(err.Error()))
+		return true
+	}
+	return false
+}
+
+func getPassword(cmd *cobra.Command) (string, bool, error) {
+	flagPassword, err := cmd.Flags().GetString("password")
+	if err != nil {
+		return "", false, err
+	}
+	if flagPassword == "" {
+		pword, quit, err := textInputs.TextinputInteractive()
+		if err != nil {
+			return "", false, err
+		}
+		return pword, quit, nil
+	}
+	return flagPassword, false, nil
+}
+
+func processPDFs(cmd *cobra.Command, pdfProcessor *pdf.PDFProcessor, selectedPdfs []string, dir, saveDir, pword string) {
+	for _, pdf := range selectedPdfs {
+		encryptedPdf, err := pdfProcessor.EncryptPdf(pdf, dir, pword)
+		if handleError(cmd, err) {
+			return
+		}
+
+		complete := fmt.Sprintf("PDF file encrypted successfully to: %s/%s", saveDir, encryptedPdf)
+		cmd.Println(selectedStyle.Render(complete))
+	}
+}
+
 // encryptCmd represents the encrypt command
 var encryptCmd = &cobra.Command{
 	Use:   "encrypt [files... or folder]",
@@ -25,44 +60,32 @@ var encryptCmd = &cobra.Command{
 			pword        string
 			quit         bool
 		)
-
-		pword, err := cmd.Flags().GetString("password")
-		if err != nil {
-			cmd.PrintErrln(errorStyle.Render(err.Error()))
-			return
-		}
+		const encrypt = "encrypt"
 
 		fileUtils := utils.NewFileUtils(args)
-		pdfProcessor := pdf.NewPDFProcessor(fileUtils, "encrypt")
+		pdfProcessor := pdf.NewPDFProcessor(fileUtils, encrypt)
 
 		// check if any files/folders are provided
 		pdfs, dir, interactive, err := fileUtils.CheckProvidedArgs()
-		if err != nil {
-			cmd.PrintErrln(errorStyle.Render(err.Error()))
+		if handleError(cmd, err) {
 			return
 		}
 
 		if interactive {
-			selectedPdfs, quit, err = multiSelect.MultiSelectInteractive(pdfs, dir, "encrypt")
-			if err != nil || quit {
-				cmd.PrintErrln(errorStyle.Render(err.Error()))
+			selectedPdfs, quit, err = multiSelect.MultiSelectInteractive(pdfs, dir, encrypt)
+			if handleError(cmd, err) || quit {
 				return
 			}
 
 			if len(selectedPdfs) == 0 {
-				cmd.PrintErrln(infoStyle.Render("No PDFs were selected. Exiting."))
+				cmd.Println(infoStyle.Render("No PDFs were selected. Exiting."))
 				return
 			}
 		}
 
-		if pword == "" {
-			pword, quit, err = textInputs.TextinputInteractive()
-			if err != nil || quit {
-				cmd.PrintErrln(errorStyle.Render(err.Error()))
-				return
-			}
-
-			fmt.Println()
+		pword, quit, err = getPassword(cmd)
+		if handleError(cmd, err) || quit {
+			return
 		}
 
 		if !interactive {
@@ -70,21 +93,11 @@ var encryptCmd = &cobra.Command{
 		}
 
 		saveDir, err := fileUtils.GetCurrentWorkingDir()
-		if err != nil {
-			cmd.PrintErrln(errorStyle.Render(err.Error()))
+		if handleError(cmd, err) {
 			return
 		}
 
-		for _, pdf := range selectedPdfs {
-			encryptedPdf, err := pdfProcessor.EncryptPdf(pdf, dir, pword)
-			if err != nil {
-				cmd.PrintErrln(errorStyle.Render(err.Error()))
-				return
-			}
-
-			complete := fmt.Sprintf("PDF file encrypted successfully to: %s/%s", saveDir, encryptedPdf)
-			cmd.Println(selectedStyle.Render(complete))
-		}
+		processPDFs(cmd, pdfProcessor, selectedPdfs, dir, saveDir, pword)
 	},
 }
 
@@ -92,6 +105,9 @@ func init() {
 	rootCmd.AddCommand(encryptCmd)
 
 	encryptCmd.Flags().StringP("password", "p", "", "Password to encrypt the PDF files.")
+	if err := encryptCmd.Parent().MarkFlagRequired("password"); err != nil {
+		return
+	}
 
 	// autocomplete for files flag
 	mergeCmd.ValidArgsFunction = GetSuggestions
