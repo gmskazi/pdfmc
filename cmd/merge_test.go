@@ -35,122 +35,85 @@ startxref
 	return os.WriteFile(filepath, []byte(content), 0644)
 }
 
+func createTestFiles(t *testing.T, tempDir string, pdfs []string) {
+	// Create test files
+	for _, f := range pdfs {
+		fullPath := filepath.Join(tempDir, f)
+		if err := createValidPDF(fullPath); err != nil {
+			assert.NoError(t, err, "failed to create test file: ", f)
+		}
+	}
+	// Create a subdirectory
+	subDir := "subdir"
+	if err := os.Mkdir(filepath.Join(tempDir, subDir), 0755); err != nil {
+		assert.NoError(t, err, "failed to create subdir: ", subDir)
+	}
+}
+
 // Only testing non interactive mode for now
 func TestMergeCommand(t *testing.T) {
+	file1 := "file1.pdf"
+	file2 := "file2.pdf"
+
 	tests := []struct {
 		name           string
-		setup          func(t *testing.T, tempDir string) []string
+		pdfs           []string
+		flags          []string
 		fileOutput     string
 		expectError    bool
 		expectedOutput string
 		checkFile      bool
 	}{
 		{
-			name: "Merge two PDF files",
-			setup: func(t *testing.T, tempDir string) []string {
-				file1 := "file1.pdf"
-				file2 := "file2.pdf"
-
-				err := createValidPDF(filepath.Join(tempDir, file1))
-				if err != nil {
-					t.Fatalf("failed to create file1.pdf: %v", err)
-				}
-				err = createValidPDF(filepath.Join(tempDir, file2))
-				if err != nil {
-					t.Fatalf("failed to create file2.pdf: %v", err)
-				}
-
-				return []string{"merge", file1, file2}
-			},
+			name:           "Merge two PDF files",
+			pdfs:           []string{file1, file2},
+			flags:          []string{merge, file1, file2},
 			fileOutput:     "merged_output.pdf",
 			expectError:    false,
 			expectedOutput: "PDF files merged successfully to:",
 			checkFile:      true,
 		},
 		{
-			name: "Merge two PDF files with custom filename",
-			setup: func(t *testing.T, tempDir string) []string {
-				file1 := "file1.pdf"
-				file2 := "file2.pdf"
-
-				err := createValidPDF(filepath.Join(tempDir, file1))
-				if err != nil {
-					t.Fatalf("failed to create file1.pdf: %v", err)
-				}
-				err = createValidPDF(filepath.Join(tempDir, file2))
-				if err != nil {
-					t.Fatalf("failed to create file2.pdf: %v", err)
-				}
-
-				return []string{"merge", file1, file2, "-n", "testname"}
-			},
+			name:           "Merge two PDF files with custom filename",
+			pdfs:           []string{file1, file2},
+			flags:          []string{merge, file1, file2, "-n", "testname"},
 			fileOutput:     "testname.pdf",
 			expectError:    false,
 			expectedOutput: "PDF files merged successfully to:",
 			checkFile:      true,
 		},
 		{
-			name: "Merge two PDF files with custom filename and password",
-			setup: func(t *testing.T, tempDir string) []string {
-				file1 := "file1.pdf"
-				file2 := "file2.pdf"
-
-				err := createValidPDF(filepath.Join(tempDir, file1))
-				assert.NoError(t, err, "failed to create file1.pdf: %v", err)
-				err = createValidPDF(filepath.Join(tempDir, file2))
-				assert.NoError(t, err, "failed to create file2.pdf: %v", err)
-
-				return []string{"merge", file1, file2, "-n", "testname", "-p", "test"}
-			},
+			name:           "Merge two PDF files with custom filename and password",
+			pdfs:           []string{file1, file2},
+			flags:          []string{merge, file1, file2, "-n", "testname", "-p", "test"},
 			fileOutput:     "encrypted-testname.pdf",
 			expectError:    false,
-			expectedOutput: "PDF files merged successfully to:",
+			expectedOutput: "PDF files merged and encrypted successfully to:",
 			checkFile:      true,
 		},
 
 		{
-			name: "Check if file and directory is provided",
-			setup: func(t *testing.T, tempDir string) []string {
-				file1 := "file1.pdf"
-				dir := filepath.Join(tempDir, "test")
-
-				err := createValidPDF(filepath.Join(tempDir, file1))
-				if err != nil {
-					t.Fatalf("failed to create file1.pdf: %v", err)
-				}
-				err = os.Mkdir(dir, 0755)
-				if err != nil {
-					t.Fatalf("failed to create test directory: %v", err)
-				}
-
-				return []string{"merge", file1, dir}
-			},
+			name:           "Check if file and directory is provided",
+			pdfs:           []string{file1},
+			flags:          []string{merge, file1, "subdir"},
 			fileOutput:     "",
 			expectError:    false,
 			expectedOutput: "is a directory not a pdf",
 			checkFile:      false,
 		},
 		{
-			name: "Check if provided files are avalible.",
-			setup: func(t *testing.T, tempDir string) []string {
-				file1 := "file1.pdf"
-				file2 := "file2.pdf"
-
-				return []string{"merge", file1, file2}
-			},
+			name:           "Check if provided files are avalible.",
+			pdfs:           nil,
+			flags:          []string{merge, file1, file2},
 			fileOutput:     "",
 			expectError:    false,
 			expectedOutput: "no such file or directory",
 			checkFile:      false,
 		},
 		{
-			name: "Check if directory is valid.",
-			setup: func(t *testing.T, tempDir string) []string {
-				err := os.RemoveAll(tempDir)
-				assert.NoError(t, err, "failed to remove directory: ", tempDir)
-
-				return []string{"merge", tempDir}
-			},
+			name:           "Check if directory is valid.",
+			pdfs:           nil,
+			flags:          []string{merge, "tempDir"},
 			fileOutput:     "",
 			expectError:    false,
 			expectedOutput: "no such file or directory",
@@ -164,8 +127,8 @@ func TestMergeCommand(t *testing.T) {
 			err := os.Chdir(tempDir)
 			assert.NoError(t, err, "failed to change directory: ", tempDir)
 
-			args := tt.setup(t, tempDir)
-			// fmt.Println(args)
+			createTestFiles(t, tempDir, tt.pdfs)
+			args := tt.flags
 
 			var outputBuf bytes.Buffer
 

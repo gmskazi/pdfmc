@@ -8,7 +8,6 @@ require (
 	github.com/charmbracelet/lipgloss v1.0.0
 	github.com/pdfcpu/pdfcpu v0.9.1
 	github.com/spf13/cobra v1.9.1
-	github.com/spf13/pflag v1.0.6
 	github.com/stretchr/testify v1.10.0
 )
 
@@ -32,6 +31,7 @@ require (
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
+	github.com/spf13/pflag v1.0.6 // indirect
 	golang.org/x/image v0.21.0 // indirect
 	golang.org/x/sync v0.11.0 // indirect
 	golang.org/x/sys v0.30.0 // indirect

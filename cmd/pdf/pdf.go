@@ -4,41 +4,32 @@ import (
 	"errors"
 	"path/filepath"
 
-	"github.com/gmskazi/pdfmc/cmd/utils"
 	"github.com/pdfcpu/pdfcpu/pkg/api"
 	"github.com/pdfcpu/pdfcpu/pkg/pdfcpu/model"
 )
 
 type PDFProcessor struct {
-	FileUtils *utils.FileUtils
-	logo      string
+	logo string
 }
 
-func NewPDFProcessor(fileUtils *utils.FileUtils, logo string) *PDFProcessor {
+func NewPDFProcessor(logo string) *PDFProcessor {
 	return &PDFProcessor{
-		FileUtils: fileUtils,
-		logo:      logo,
+		logo: logo,
 	}
 }
 
 func (p *PDFProcessor) pdfExtension(file string) string {
-	return file + ".pdf"
-}
-
-func (p *PDFProcessor) validateInputFiles(inputFilesNames []string) error {
-	if len(inputFilesNames) == 0 {
-		return errors.New("no PDF files provided")
-	} else if len(inputFilesNames) == 1 {
-		return errors.New("please provide more than one file to merge pdfs")
+	if filepath.Ext(file) != ".pdf" {
+		return file + ".pdf"
 	}
-	return nil
+	return file
 }
 
 func (p *PDFProcessor) MergePdfs(pdfs []string, outputPdf string) (output string, err error) {
-	output = p.pdfExtension(outputPdf)
-	if err := p.validateInputFiles(pdfs); err != nil {
-		return "", err
+	if len(pdfs) < 2 {
+		return "", errors.New("at least two PDF files are required to merge")
 	}
+	output = p.pdfExtension(outputPdf)
 
 	if err := api.MergeCreateFile(pdfs, output, false, nil); err != nil {
 		return "", err
