@@ -56,8 +56,8 @@
 #   Show                            Show the subsequent commands in the output
 
 Set FontSize 15
-Set FontFamily "JetBrainsMono Nerd Font"
-Output encrypt.gif
+Set FontFamily "jetbrainsmono nerd font"
+Output decrypt.gif
 
 Require pdfmc
 
@@ -74,10 +74,10 @@ Enter
 Show
 
 ## Run encrypt
-Type "pdfmc encrypt -h"
+Type "pdfmc decrypt -h"
 Enter
 Sleep 3s
-Type "pdfmc encrypt"
+Type "pdfmc decrypt"
 Sleep 1s
 Enter
 Sleep 1s
@@ -94,7 +94,7 @@ Sleep 1s
 Enter
 Sleep 5s
 
-Type "pdfmc encrypt lets-go.pdf -p test"
+Type "pdfmc decrypt lets-go.pdf -p test"
 Sleep 1s
 Enter
 Sleep 3s

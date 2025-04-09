@@ -8,7 +8,8 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-const logoMerge = `
+const (
+	logoMerge = `
  __  __                  
 |  \/  |___ _ _ __ _ ___ 
 | |\/| / -_) '_/ _` + "`" + ` / -_)
@@ -16,13 +17,25 @@ const logoMerge = `
                |___/     
 `
 
-const logoEncrypt = `
+	logoEncrypt = `
  ___                       _   
 | __|_ _  __ _ _ _  _ _ __| |_ 
 | _|| ' \/ _| '_| || | '_ \  _|
 |___|_||_\__|_|  \_, | .__/\__|
                  |__/|_|       
 `
+
+	logoDecrypt = `
+ ___                       _   
+|   \ ___ __ _ _ _  _ _ __| |_ 
+| |) / -_) _| '_| || | '_ \  _|
+|___/\___\__|_|  \_, | .__/\__|
+                 |__/|_|       
+`
+	merge   = "merge"
+	encrypt = "encrypt"
+	decrypt = "decrypt"
+)
 
 var (
 	defaultStyle  = lipgloss.NewStyle().PaddingLeft(1).Foreground(lipgloss.Color("#5dd2fc")).Bold(true)
@@ -55,11 +68,15 @@ type autoQuitMsg struct{}
 
 func (m Tmodel) Init() tea.Cmd {
 	// Set error and autoQuit if conditions aren't met
-	if m.logo == "merge" && len(m.pdfs) <= 1 {
+	if m.logo == merge && len(m.pdfs) <= 1 {
 		return func() tea.Msg {
 			return autoQuitMsg{}
 		}
-	} else if m.logo == "encrypt" && len(m.pdfs) == 0 {
+	} else if m.logo == encrypt && len(m.pdfs) == 0 {
+		return func() tea.Msg {
+			return autoQuitMsg{}
+		}
+	} else if m.logo == decrypt && len(m.pdfs) == 0 {
 		return func() tea.Msg {
 			return autoQuitMsg{}
 		}
@@ -80,7 +97,7 @@ func (m Tmodel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case autoQuitMsg:
 		m.autoQuit = true
-		if m.logo == "merge" && len(m.pdfs) <= 1 {
+		if m.logo == merge && len(m.pdfs) <= 1 {
 			m.ErrMsg = "Error: Need at least 2 PDFs to merge"
 		} else {
 			m.ErrMsg = "Error: No PDFs found to encrypt"
@@ -122,11 +139,14 @@ func (m Tmodel) View() string {
 	var b strings.Builder
 
 	switch m.logo {
-	case "merge":
+	case merge:
 		b.WriteString(defaultStyle.Render(logoMerge))
 		fmt.Fprint(&b, "\n\n")
-	case "encrypt":
+	case encrypt:
 		b.WriteString(defaultStyle.Render(logoEncrypt))
+		fmt.Fprint(&b, "\n\n")
+	case decrypt:
+		b.WriteString(defaultStyle.Render(logoDecrypt))
 		fmt.Fprint(&b, "\n\n")
 	}
 
@@ -136,11 +156,14 @@ func (m Tmodel) View() string {
 	}
 
 	switch m.logo {
-	case "merge":
+	case merge:
 		b.WriteString(defaultStyle.Render("Which PDFs do you want to merge together?"))
 
-	case "encrypt":
+	case encrypt:
 		b.WriteString(defaultStyle.Render("Which PDFs do you want to Encrypt?"))
+
+	case decrypt:
+		b.WriteString(defaultStyle.Render("Which PDFs do you want to Decrypt?"))
 	}
 
 	fmt.Fprint(&b, "\n")

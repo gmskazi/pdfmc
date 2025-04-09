@@ -26,7 +26,7 @@ go install github.com/gmskazi/pdfmc@latest
 ```
 
 This installs a go binary that will automatically bind to your $GOPATH.
-> If you're using ZSH, you'll need to add it manually to ~/.zshrc.
+> If you're using ZSH, you may need to add the $GOPATH to your ~/.zshrc.
 
 ```bash
 GOPATH=$HOME/go PATH=$PATH:/usr/local/go/bin:$GOPATH/bin
@@ -61,7 +61,7 @@ curl -L https://raw.githubusercontent.com/gmskazi/pdfmc/main/scripts/uninstall.s
 ---
 
 > Note: **For Mac users**, you may need to allow pdfmc to run on your mac the first time you run it.
-Navigate to System Settings > Privacy & Security > scroll down to the bottem and allow pdfmc to run.
+Navigate to System Settings > Privacy & Security > scroll down to the bottom and allow pdfmc to run.
 
 ## Run
 
@@ -101,6 +101,8 @@ all the PDFs combined into one files.
 pdfmc merge -n testname
 ```
 
+> Output file: testname.pdf
+
 - Reorder the PDFs through the UI.
 
 > '--order' or '-o' flag.
@@ -138,7 +140,7 @@ pdfmc merge -eo
 Output file
 
 ```bash
-encrypt-merged_output.pdf
+merged_output.pdf
 ```
 
 #### Merge example Non-interactive mode
@@ -152,7 +154,7 @@ pdfmc merge file1.pdf file2.pdf -n testname -p veryStr0ngPa33w0rd!
 Output file
 
 ```bash
-encrypt-testname.pdf
+testname.pdf
 ```
 
 ---
@@ -173,14 +175,13 @@ Or you have the option to add a directory and it will search that directory for 
 pdfmc encrypt directory
 ```
 
-Or you can add pdf files that you would like to be merged, this will skip the UI for selecting the PDF files.
+Or you can add pdf files that you would like to be encrypted, this will skip the UI for selecting the PDF files.
 
 ```bash
 pdfmc merge file1.pdf file2.pdf file3.pdf
 ```
 
-You have the ability to choose which PDFs you would like to encrypt (including multiple files) and set a password,
-the encrypted files will have "encrypt-" at the beginning of the file saved in your current working directory.
+You have the ability to choose which PDFs you would like to encrypt (including multiple files) and set a password.
 
 #### flags
 
@@ -211,6 +212,64 @@ pdfmc encrypt
 ```bash
 pdfmc encrypt file1.pdf file2.pdf -p veryStr0ngPa33w0rd!
 ```
+
+---
+
+### Decrypt PDFs
+
+![pdfmc decrypt](public/decrypt.gif)
+
+Navigate to the directory where your PDFs live and run:
+
+```bash
+pdfmc decrypt
+```
+
+Or you have the option to add a directory and it will search that directory for pdf files.
+
+```bash
+pdfmc decrypt directory
+```
+
+Or you can add pdf files that you would like to be decrypted, this will skip the UI for selecting the PDF files.
+
+```bash
+pdfmc merge file1.pdf file2.pdf file3.pdf
+```
+
+You have the ability to choose which PDFs you would like to encrypt (including multiple files) and set a password.
+
+#### flags
+
+---
+
+- Password to decrypt the PDF files.
+
+> '--password' or '-p' flag.
+
+The below option will use the UI for selecting the pdf files to decrypt.
+
+```bash
+pdfmc decrypt -p veryStr0ngPa33w0rd!
+```
+
+#### Decrypt example interactive mode
+
+> Decrypt the files interactively through the UI.
+
+```bash
+pdfmc decrypt
+```
+
+#### Decrypt example non-interactive mode
+
+> Decrypt and set a password non-interactively.
+
+```bash
+pdfmc Decrypt file1.pdf file2.pdf -p veryStr0ngPa33w0rd!
+```
+
+---
 
 ## Completions
 

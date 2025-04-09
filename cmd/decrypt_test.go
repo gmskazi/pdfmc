@@ -2,17 +2,32 @@ package cmd
 
 import (
 	"bytes"
+	"fmt"
 	"os"
 	"testing"
 
+	"github.com/gmskazi/pdfmc/cmd/pdf"
 	"github.com/stretchr/testify/assert"
 )
 
+func encryptTestFiles(t *testing.T, tempdir string, pdfs []string, password, pdfPrefix string) {
+	p := pdf.NewPDFProcessor(encrypt)
+	// encrypt test files
+	for _, f := range pdfs {
+
+		encryptedPdf, err := p.EncryptPdf(f, tempdir, password, pdfPrefix)
+		assert.NoError(t, err, "failed to encrypt pdf")
+		fmt.Println(encryptedPdf)
+
+	}
+}
+
 // Only testing non interactive mode for now
-func TestEncryptCommand(t *testing.T) {
+func TestDecryptCommand(t *testing.T) {
 	tests := []struct {
 		name           string
 		pdfs           []string
+		pdfPrefix      string
 		flags          []string
 		fileOutput     string
 		expectError    bool
@@ -22,51 +37,62 @@ func TestEncryptCommand(t *testing.T) {
 		password       string
 	}{
 		{
-			name:           "Encrypt a PDF file",
+			name:           "Decrypt a PDF file",
 			pdfs:           []string{"file1.pdf"},
-			flags:          []string{encrypt, "file1.pdf", "-p", "test"},
+			pdfPrefix:      "",
+			flags:          []string{decrypt, "file1.pdf", "-p", "test"},
 			fileOutput:     "file1.pdf",
 			expectError:    false,
-			expectedOutput: "PDF file encrypted successfully to:",
+			expectedOutput: "PDF file decrypted successfully to:",
 			checkFile:      true,
-		},
-		{
-			name:           "Check if file is encrypted",
-			pdfs:           []string{"file1.pdf"},
-			flags:          []string{encrypt, "file1.pdf", "-p", "test"},
-			fileOutput:     "",
-			expectError:    false,
-			expectedOutput: "this file is already encrypted",
-			checkFile:      false,
 			encrypt:        true,
 			password:       "test",
 		},
 		{
+			name:           "Check if file is not encrypted",
+			pdfs:           []string{"file1.pdf"},
+			flags:          []string{decrypt, "file1.pdf", "-p", "test"},
+			fileOutput:     "",
+			expectError:    false,
+			expectedOutput: "this file is not encrypted",
+			checkFile:      false,
+			encrypt:        false,
+		},
+		{
 			name:           "Provide a flag with no password",
 			pdfs:           nil,
-			flags:          []string{encrypt, "file1.pdf", "-p"},
+			pdfPrefix:      "",
+			flags:          []string{decrypt, "file1.pdf", "-p"},
 			fileOutput:     "",
 			expectError:    true,
 			expectedOutput: "flag needs an argument:",
 			checkFile:      false,
+			encrypt:        false,
+			password:       "",
 		},
 		{
 			name:           "Check if files are available",
 			pdfs:           nil,
-			flags:          []string{encrypt, "file1.pdf", "-p", "test"},
+			pdfPrefix:      "",
+			flags:          []string{decrypt, "file1.pdf", "-p", "test"},
 			fileOutput:     "",
 			expectError:    false,
 			expectedOutput: "no such file or directory",
 			checkFile:      false,
+			encrypt:        false,
+			password:       "",
 		},
 		{
-			name:           "Encrypt PDF file with name prefix",
+			name:           "decrypt file with custom name prefix",
 			pdfs:           []string{"file1.pdf"},
-			flags:          []string{encrypt, "file1.pdf", "-p", "test", "-n", "test"},
-			fileOutput:     "testfile1.pdf",
+			pdfPrefix:      "",
+			flags:          []string{decrypt, "file1.pdf", "-p", "test", "-n", "test-"},
+			fileOutput:     "test-file1.pdf",
 			expectError:    false,
-			expectedOutput: "PDF file encrypted successfully to:",
+			expectedOutput: "PDF file decrypted successfully to:",
 			checkFile:      true,
+			encrypt:        true,
+			password:       "test",
 		},
 	}
 
@@ -78,7 +104,7 @@ func TestEncryptCommand(t *testing.T) {
 
 			createTestFiles(t, tempDir, tt.pdfs)
 			if tt.encrypt && tt.password != "" {
-				encryptTestFiles(t, tempDir, tt.pdfs, tt.password, "")
+				encryptTestFiles(t, tempDir, tt.pdfs, tt.password, tt.pdfPrefix)
 			}
 			args := tt.flags
 

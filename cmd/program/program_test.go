@@ -3,6 +3,7 @@ package program
 import (
 	"testing"
 
+	textInputs "github.com/gmskazi/pdfmc/cmd/ui/textinputs"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/stretchr/testify/assert"
@@ -30,9 +31,9 @@ func TestNewProgram(t *testing.T) {
 				cmd:   &cobra.Command{},
 				args:  []string{},
 				logo:  "merge",
+				name:  "",
 				pword: "",
 				MergeFlags: MergeFlags{
-					name:    "",
 					reorder: false,
 					encrypt: false,
 				},
@@ -65,9 +66,9 @@ func TestNewProgram(t *testing.T) {
 				cmd:   &cobra.Command{},
 				args:  []string{"file1.pdf", "file2.pdf"},
 				logo:  "merge",
+				name:  "testName",
 				pword: "testPassword",
 				MergeFlags: MergeFlags{
-					name:    "testName",
 					reorder: true,
 					encrypt: true,
 				},
@@ -98,9 +99,9 @@ func TestNewProgram(t *testing.T) {
 				cmd:   &cobra.Command{},
 				args:  []string{"file1.pdf", "file2.pdf"},
 				logo:  "merge",
+				name:  "testName",
 				pword: "",
 				MergeFlags: MergeFlags{
-					name:    "testName",
 					reorder: true,
 					encrypt: false,
 				},
@@ -158,6 +159,49 @@ func Test_getFlagValue(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			got := getFlagValue(tt.args.flag)
 			assert.Equal(t, tt.want, got, "Flags should match")
+		})
+	}
+}
+
+type textInputFunc func() (string, bool, error)
+
+var TextinputInteractive textInputFunc = textInputs.TextinputInteractive
+
+func Test_getPassword(t *testing.T) {
+	tests := []struct {
+		name          string
+		program       *Program
+		inputFunc     textInputFunc
+		expectedError bool
+		expectedPword string
+	}{
+		{
+			name: "password already set",
+			program: &Program{
+				pword: "existingPassword",
+			},
+			inputFunc:     nil,
+			expectedError: false,
+			expectedPword: "existingPassword",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.inputFunc != nil {
+				TextinputInteractive = tt.inputFunc
+			} else {
+				TextinputInteractive = textInputs.TextinputInteractive
+			}
+
+			err := tt.program.getPassword()
+
+			if tt.expectedError {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, tt.expectedPword, tt.program.pword)
+			}
 		})
 	}
 }

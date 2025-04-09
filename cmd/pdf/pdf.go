@@ -25,11 +25,11 @@ func (p *PDFProcessor) pdfExtension(file string) string {
 	return file
 }
 
-func (p *PDFProcessor) MergePdfs(pdfs []string, outputPdf string) (output string, err error) {
+func (p *PDFProcessor) MergePdfs(pdfs []string, outputPdf string) (string, error) {
 	if len(pdfs) < 2 {
 		return "", errors.New("at least two PDF files are required to merge")
 	}
-	output = p.pdfExtension(outputPdf)
+	output := p.pdfExtension(outputPdf)
 
 	if err := api.MergeCreateFile(pdfs, output, false, nil); err != nil {
 		return "", err
@@ -41,19 +41,60 @@ func (p *PDFProcessor) MergePdfs(pdfs []string, outputPdf string) (output string
 	return output, nil
 }
 
-func (p *PDFProcessor) EncryptPdf(pdf string, dir string, password string) (encryptedPdf string, err error) {
+func (p *PDFProcessor) EncryptPdf(pdf, dir, password, prefix string) (string, error) {
+	var (
+		encryptedPdfName string
+		err              error
+	)
+
 	conf := model.NewAESConfiguration(password, password, 256)
 
-	encryptedPdfName := "encrypted-" + pdf
-
-	err = api.EncryptFile(filepath.Join(dir, pdf), encryptedPdfName, conf)
-	if err != nil {
-		return "", err
+	if prefix != "" {
+		encryptedPdfName = prefix + pdf
+		err = api.EncryptFile(filepath.Join(dir, pdf), encryptedPdfName, conf)
+		if err != nil {
+			return "", err
+		}
+	} else {
+		encryptedPdfName = pdf
+		err = api.EncryptFile(filepath.Join(dir, pdf), "", conf)
+		if err != nil {
+			return "", err
+		}
 	}
 
-	err = api.ValidateFile(encryptedPdfName, conf)
+	err = api.ValidateFile(pdf, conf)
 	if err != nil {
 		return "", err
 	}
 	return encryptedPdfName, nil
+}
+
+func (p *PDFProcessor) DecryptPdf(pdf, dir, password, prefix string) (string, error) {
+	var (
+		decryptedPdfName string
+		err              error
+	)
+	conf := model.NewAESConfiguration(password, password, 256)
+
+	if prefix != "" {
+		decryptedPdfName = prefix + pdf
+		err = api.DecryptFile(filepath.Join(dir, pdf), decryptedPdfName, conf)
+		if err != nil {
+			return "", err
+		}
+
+	} else {
+		decryptedPdfName = pdf
+		err = api.DecryptFile(filepath.Join(dir, pdf), "", conf)
+		if err != nil {
+			return "", err
+		}
+	}
+
+	err = api.ValidateFile(decryptedPdfName, conf)
+	if err != nil {
+		return "", err
+	}
+	return decryptedPdfName, nil
 }
