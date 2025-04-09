@@ -34,6 +34,21 @@ startxref
 	return os.WriteFile(filepath, []byte(content), 0644)
 }
 
+func createTestFiles(t *testing.T, tempDir string, pdfs []string) {
+	// Create test files
+	for _, f := range pdfs {
+		fullPath := filepath.Join(tempDir, f)
+		if err := createValidPDF(fullPath); err != nil {
+			assert.NoError(t, err, "failed to create test file: ", f)
+		}
+	}
+	// Create a subdirectory
+	subDir := "subdir"
+	if err := os.Mkdir(filepath.Join(tempDir, subDir), 0755); err != nil {
+		assert.NoError(t, err, "failed to create subdir: ", subDir)
+	}
+}
+
 func TestIsDirectory(t *testing.T) {
 	tempDir := t.TempDir()
 
@@ -86,41 +101,25 @@ func TestIsDirectory(t *testing.T) {
 
 func TestGetCurrentWorkingDir(t *testing.T) {
 	expectedDir, err := os.Getwd()
-	if err != nil {
-		t.Fatalf("failed to get current working dir: %v", err)
-	}
+	assert.NoError(t, err, "failed to get current working dir: %v", err)
 
-	fileUtils := *NewFileUtils(nil)
+	fileUtils := NewFileUtils(nil)
 	actualDir, err := fileUtils.GetCurrentWorkingDir()
 	assert.NoError(t, err)
 	assert.Equal(t, expectedDir, actualDir)
-
-	fileUtils.dir = "dummydir"
-	_, err = fileUtils.GetCurrentWorkingDir()
-	assert.NoError(t, err)
 }
 
 func TestReadDirectory(t *testing.T) {
 	tempDir := t.TempDir()
-	inputFile1 := tempDir + "/file1.pdf"
-	inputFile2 := tempDir + "/file2.pdf"
-	err := createValidPDF(inputFile1)
-	if err != nil {
-		t.Errorf("error creating file1.pdf: %v", err)
-	}
-	err = createValidPDF(inputFile2)
-	if err != nil {
-		t.Errorf("error createing file2.pdf: %v", err)
-	}
+	err := os.Chdir(tempDir)
+	assert.NoError(t, err, "failed to change directory: ", tempDir)
+	createTestFiles(t, tempDir, []string{"file1.pdf", "file2.pdf"})
 
-	fileUtils := NewFileUtils(nil)
-	entries, err := fileUtils.ReadDirectory(tempDir)
-	if err != nil {
-		t.Errorf("error GetCurrentWorkingDir: %v", err)
-	}
+	f := NewFileUtils(nil)
+	entries, err := f.ReadDirectory(tempDir)
+	assert.NoError(t, err, "error GetCurrentWorkingDir: %v", err)
 
-	assert.NoError(t, err)
-	assert.Len(t, entries, 2)
+	assert.Len(t, entries, 3)
 
 	var fileNames []string
 	for _, entry := range entries {
@@ -132,52 +131,67 @@ func TestReadDirectory(t *testing.T) {
 }
 
 func TestFilterPdfFiles(t *testing.T) {
-	fileUtils := NewFileUtils(nil)
-
 	tempDir := t.TempDir()
-	err := createValidPDF(tempDir + "/file1.pdf")
-	if err != nil {
-		t.Errorf("error creating file1.pdf: %v", err)
-	}
-	err = createValidPDF(tempDir + "/file2.pdf")
-	if err != nil {
-		t.Errorf("error creating file2.pdf: %v", err)
-	}
-	err = createValidPDF(tempDir + "/file1.txt")
-	if err != nil {
-		t.Errorf("error creating file1.txt: %v", err)
-	}
+	createTestFiles(t, tempDir, []string{"file1.pdf", "file2.pdf", "file3.txt"})
 
-	err = os.Mkdir(tempDir+"/testing", 0755)
-	if err != nil {
-		t.Errorf("error creating testing dir: %v", err)
-	}
+	f := NewFileUtils(nil)
+	entries, _ := f.ReadDirectory(tempDir)
 
-	entries, _ := fileUtils.ReadDirectory(tempDir)
-
-	pdfFiles := fileUtils.FilterPdfFiles(entries)
+	pdfFiles := f.FilterPdfFiles(entries)
 	assert.Len(t, pdfFiles, 2)
 	assert.Contains(t, pdfFiles, "file1.pdf")
 	assert.Contains(t, pdfFiles, "file2.pdf")
 }
 
 func TestGetPdfFilesFromDir(t *testing.T) {
-	fileUtils := NewFileUtils(nil)
-
-	tempDir := t.TempDir()
-	err := createValidPDF(tempDir + "/file1.pdf")
-	if err != nil {
-		t.Errorf("error creating file1.pdf: %v", err)
+	tests := []struct {
+		name          string
+		pdfs          []string
+		dir           string
+		NumberOfItems int
+		expectedErr   bool
+	}{
+		{
+			name:          "Get 2 files",
+			pdfs:          []string{"file1.pdf", "file2.pdf"},
+			dir:           "tempDir",
+			NumberOfItems: 2,
+			expectedErr:   false,
+		},
+		{
+			name:          "fake directory",
+			pdfs:          nil,
+			dir:           "falseDir",
+			NumberOfItems: 0,
+			expectedErr:   true,
+		},
 	}
-	err = createValidPDF(tempDir + "/file2.pdf")
-	if err != nil {
-		t.Errorf("error creating file2.pdf: %v", err)
-	}
-	pdfFiles := fileUtils.GetPdfFilesFromDir(tempDir)
 
-	assert.Len(t, pdfFiles, 2)
-	assert.Contains(t, pdfFiles, "file1.pdf")
-	assert.Contains(t, pdfFiles, "file2.pdf")
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tempDir := t.TempDir()
+			err := os.Chdir(tempDir)
+			assert.NoError(t, err, "failed to change directory: ", tempDir)
+			createTestFiles(t, tempDir, tt.pdfs)
+
+			f := NewFileUtils(nil)
+			var pdfFiles []string
+			if tt.dir == "tempDir" {
+				pdfFiles, err = f.GetPdfFilesFromDir(tempDir)
+			} else {
+				pdfFiles, err = f.GetPdfFilesFromDir(tt.dir)
+			}
+
+			if tt.expectedErr {
+				assert.Error(t, err, "Expected an error but command ran successfully")
+			} else {
+				assert.NoError(t, err, "Expected to run successfully but received an error")
+			}
+
+			assert.Len(t, pdfFiles, tt.NumberOfItems)
+			assert.Equal(t, pdfFiles, tt.pdfs)
+		})
+	}
 }
 
 func TestAddFullPathToPdfs(t *testing.T) {
@@ -193,8 +207,6 @@ func TestAddFullPathToPdfs(t *testing.T) {
 }
 
 func TestCheckProvidedArgs(t *testing.T) {
-	t.Parallel()
-
 	tests := []struct {
 		name                string
 		setup               func(tempDir string)
@@ -279,9 +291,9 @@ func TestCheckProvidedArgs(t *testing.T) {
 				tt.setup(tempDir)
 			}
 
-			fileUtils := NewFileUtils(nil)
-			fileUtils.args = tt.args
-			pdfs, _, interactive, err := fileUtils.CheckProvidedArgs()
+			f := NewFileUtils(nil)
+			f.args = tt.args
+			pdfs, _, err := f.CheckProvidedArgs()
 
 			if tt.expectedErr {
 				assert.Error(t, err)
@@ -293,9 +305,9 @@ func TestCheckProvidedArgs(t *testing.T) {
 
 			switch tt.expectedInteractive {
 			case true:
-				assert.True(t, interactive, "expected interactive to be true")
+				assert.True(t, f.Interactive, "expected interactive to be true")
 			case false:
-				assert.False(t, interactive, "expected interactive to be false")
+				assert.False(t, f.Interactive, "expected interactive to be false")
 			}
 		})
 	}

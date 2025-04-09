@@ -6,8 +6,12 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/gmskazi/pdfmc/cmd/utils"
 	"github.com/stretchr/testify/assert"
+)
+
+const (
+	merge   = "merge"
+	encrypt = "encrypt"
 )
 
 func createValidPDF(filepath string) error {
@@ -36,115 +40,75 @@ startxref
 	return os.WriteFile(filepath, []byte(content), 0644)
 }
 
-func TestMergedPdfs(t *testing.T) {
-	// Create temporary PDF files
-	// By using t.TempDir() ensures all temporary files are cleaned up.
-	temDir := t.TempDir()
-	inputFile1 := filepath.Join(temDir, "file1.pdf")
-	inputFile2 := filepath.Join(temDir, "/file2.pdf")
-	customName := "merged"
-	outputfile := "merged.pdf"
-
-	// Create dummy pdfs
-	err := createValidPDF(inputFile1)
-	assert.NoError(t, err)
-	err = createValidPDF(inputFile2)
-	assert.NoError(t, err)
-
-	fileUtils := utils.NewFileUtils(nil)
-	pdfProcssor := NewPDFProcessor(fileUtils, "merge")
-	output, err := pdfProcssor.MergePdfs([]string{inputFile1, inputFile2}, customName)
-	assert.NoError(t, err)
-
-	assert.Equal(t, output, outputfile)
-	_, err = os.Stat(outputfile)
-	assert.NoError(t, err)
+func createTestFiles(t *testing.T, tempDir string, pdfs []string) {
+	// Create test files
+	for _, f := range pdfs {
+		fullPath := filepath.Join(tempDir, f)
+		if err := createValidPDF(fullPath); err != nil {
+			assert.NoError(t, err, "failed to create test file: ", f)
+		}
+	}
+	// Create a subdirectory
+	subDir := "subdir"
+	if err := os.Mkdir(filepath.Join(tempDir, subDir), 0755); err != nil {
+		assert.NoError(t, err, "failed to create subdir: ", subDir)
+	}
 }
 
-func TestValidateInputFiles(t *testing.T) {
-	t.Parallel()
+func TestMergePdfs(t *testing.T) {
+	file1 := "file1.pdf"
+	file2 := "file2.pdf"
 
 	tests := []struct {
-		name          string
-		setup         func(tempDir string)
-		expectedFiles []string
-		expectedErr   string
+		name        string
+		pdfs        []string
+		customName  string
+		fileOutput  string
+		expectedErr bool
 	}{
 		{
-			name: "No PDF files are provided",
-			setup: func(tempDir string) {
-			},
-			expectedFiles: nil,
-			expectedErr:   "no PDF files provided",
+			name:        "Merge 2 files",
+			pdfs:        []string{file1, file2},
+			customName:  "test",
+			fileOutput:  "test.pdf",
+			expectedErr: false,
 		},
 		{
-			name: "One PDF file provided",
-			setup: func(tempDir string) {
-				err := createValidPDF(tempDir + "/file1.pdf")
-				if err != nil {
-					t.Fatalf("failed to write file1.pdf: %v", err)
-				}
-			},
-			expectedFiles: []string{"file1.pdf"},
-			expectedErr:   "please provide more than one file to merge pdfs",
-		},
-		{
-			name: "Multiple PDF files to merge",
-			setup: func(temDir string) {
-				err := createValidPDF(temDir + "/file1.pdf")
-				if err != nil {
-					t.Fatalf("failed to create file1.pdf: %v", err)
-				}
-				err = createValidPDF(temDir + "/file2.pdf")
-				if err != nil {
-					t.Fatalf("failed to create file2.pdf: %v", err)
-				}
-				err = createValidPDF(temDir + "/file3.pdf")
-				if err != nil {
-					t.Fatalf("failed to create file3.pdf: %v", err)
-				}
-			},
-			expectedFiles: []string{"file1.pdf", "file2.pdf", "file3.pdf"},
-			expectedErr:   "",
+			name:        "Error for one file",
+			pdfs:        []string{file1},
+			customName:  "test",
+			fileOutput:  "",
+			expectedErr: true,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			tempDir := t.TempDir()
+			err := os.Chdir(tempDir)
+			assert.NoError(t, err, "failed to change directory: ", tempDir)
 
-			if tt.setup != nil {
-				tt.setup(tempDir)
-			}
+			createTestFiles(t, tempDir, tt.pdfs)
+			pdfP := NewPDFProcessor(merge)
+			output, err := pdfP.MergePdfs(tt.pdfs, tt.customName)
 
-			fileUtils := utils.NewFileUtils(nil)
-			pdfProcessor := NewPDFProcessor(fileUtils, "merge")
-
-			pdfs := fileUtils.GetPdfFilesFromDir(tempDir)
-			fmt.Println(pdfs)
-
-			err := pdfProcessor.validateInputFiles(pdfs)
-
-			if tt.expectedErr != "" {
-				assert.Error(t, err)
-				assert.EqualError(t, err, tt.expectedErr)
+			if tt.expectedErr {
+				assert.Error(t, err, "Expected an error but command ran successfully")
 			} else {
-				assert.NoError(t, err)
-				assert.ElementsMatch(t, pdfs, tt.expectedFiles)
+				assert.NoError(t, err, "Expected command to run successfully but it failed")
 			}
+
+			assert.Equal(t, tt.fileOutput, output, "File output %s should be the same as %s", output, tt.fileOutput)
 		})
 	}
 }
 
 func TestPdfExtension(t *testing.T) {
 	expected := "testing.pdf"
-	fileUtils := utils.NewFileUtils(nil)
-	pdfProcessor := NewPDFProcessor(fileUtils, "merge")
+	pdfProcessor := NewPDFProcessor("merge")
 	actual := pdfProcessor.pdfExtension("testing")
 
-	if actual != expected {
-		t.Errorf("Expected: %s got %s", expected, actual)
-	}
+	assert.Equal(t, expected, actual, "Expected: %s, got %s", expected, actual)
 }
 
 func TestEncryptPdf(t *testing.T) {
@@ -154,7 +118,7 @@ func TestEncryptPdf(t *testing.T) {
 		password     string
 		expectedFile string
 		expectedErr  bool
-		setupFile    bool
+		setupFile    []string
 	}{
 		{
 			name:         "successful encryption",
@@ -162,34 +126,27 @@ func TestEncryptPdf(t *testing.T) {
 			password:     "test",
 			expectedFile: "encrypted-test.pdf",
 			expectedErr:  false,
-			setupFile:    true,
+			setupFile:    []string{"test.pdf"},
 		},
 	}
 
 	for _, tt := range tests {
-		tempDir := t.TempDir()
+		t.Run(tt.name, func(t *testing.T) {
+			tempDir := t.TempDir()
+			err := os.Chdir(tempDir)
+			assert.NoError(t, err, "failed to change directory: %s", tempDir)
+			createTestFiles(t, tempDir, tt.setupFile)
 
-		if tt.setupFile {
-			testPdf := filepath.Join(tempDir, tt.pdf)
-			err := createValidPDF(testPdf)
-			if err != nil {
-				t.Fatalf("failed to create test.pdf: %v", err)
-			}
-
-			processor := NewPDFProcessor(utils.NewFileUtils(nil), "encrypt")
+			processor := NewPDFProcessor(encrypt)
 			encryptedPdf, err := processor.EncryptPdf(tt.pdf, tempDir, tt.password)
-			if err != nil {
-				t.Fatalf("failed to encrypt PDF: %v", err)
-			}
-
+			fmt.Println(err)
 			if tt.expectedErr {
-				assert.Error(t, err)
-				assert.Empty(t, encryptedPdf)
+				assert.Error(t, err, "Expected an error but command ran successfully")
 			} else {
-				assert.NoError(t, err)
+				assert.NoError(t, err, "Expected to run successfully but it failed")
 			}
-			assert.Equal(t, tt.expectedFile, encryptedPdf)
 
-		}
+			assert.Equal(t, tt.expectedFile, encryptedPdf, "Expected PDF file: %s to be Equal to: %s", encryptedPdf, tt.expectedFile)
+		})
 	}
 }

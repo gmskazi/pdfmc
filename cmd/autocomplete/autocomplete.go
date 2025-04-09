@@ -1,4 +1,4 @@
-package cmd
+package autocomplete
 
 import (
 	"os"
@@ -8,10 +8,17 @@ import (
 	"github.com/spf13/cobra"
 )
 
+type FilterOptions struct {
+	BaseDir   string
+	HomeDir   string
+	Filter    string
+	Args      []string
+	UsedFiles map[string]bool
+}
+
 func GetSuggestions(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	homeDir, baseDir, filter, err := resolveBaseDir(toComplete)
 	if err != nil {
-		cmd.PrintErrln(errorStyle.Render(err.Error()))
 		return nil, cobra.ShellCompDirectiveError
 	}
 
@@ -25,7 +32,15 @@ func GetSuggestions(cmd *cobra.Command, args []string, toComplete string) ([]str
 		usedFiles[strings.TrimSpace(arg)] = true
 	}
 
-	suggestions := filterPDFsAndDirs(files, baseDir, homeDir, filter, args, usedFiles)
+	opts := FilterOptions{
+		BaseDir:   baseDir,
+		HomeDir:   homeDir,
+		Filter:    filter,
+		Args:      args,
+		UsedFiles: usedFiles,
+	}
+
+	suggestions := filterPDFsAndDirs(files, opts)
 
 	if len(suggestions) == 0 {
 		return nil, cobra.ShellCompDirectiveNoFileComp
@@ -58,26 +73,26 @@ func resolveBaseDir(toComplete string) (homeDir, baseDir, filter string, err err
 	return homeDir, filepath.Dir(searchDir), filepath.Base(searchDir), nil
 }
 
-func filterPDFsAndDirs(files []os.DirEntry, baseDir, homeDir, filter string, args []string, usedFiles map[string]bool) []string {
+func filterPDFsAndDirs(files []os.DirEntry, opts FilterOptions) []string {
 	var suggestions []string
 	for _, file := range files {
 		name := file.Name()
 		lower := strings.ToLower(name)
-		fullPath := filepath.Join(baseDir, name)
+		fullPath := filepath.Join(opts.BaseDir, name)
 
-		if homeDir != "" && strings.HasPrefix(fullPath, homeDir) {
-			fullPath = "~/" + strings.TrimPrefix(fullPath, homeDir+"/")
+		if opts.HomeDir != "" && strings.HasPrefix(fullPath, opts.HomeDir) {
+			fullPath = "~/" + strings.TrimPrefix(fullPath, opts.HomeDir+"/")
 		}
 
-		if len(args) == 0 {
+		if len(opts.Args) == 0 {
 			if file.IsDir() || strings.HasSuffix(lower, ".pdf") {
-				if strings.HasPrefix(lower, strings.ToLower(filter)) {
+				if strings.HasPrefix(lower, strings.ToLower(opts.Filter)) {
 					suggestions = append(suggestions, fullPath)
 				}
 			}
 		} else {
-			if !file.IsDir() && strings.HasSuffix(lower, ".pdf") && strings.HasPrefix(lower, strings.ToLower(filter)) {
-				if !usedFiles[fullPath] {
+			if !file.IsDir() && strings.HasSuffix(lower, ".pdf") && strings.HasPrefix(lower, strings.ToLower(opts.Filter)) {
+				if !opts.UsedFiles[fullPath] {
 					suggestions = append(suggestions, fullPath)
 				}
 			}

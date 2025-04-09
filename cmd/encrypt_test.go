@@ -3,7 +3,6 @@ package cmd
 import (
 	"bytes"
 	"os"
-	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -14,68 +13,47 @@ func TestEncryptCommand(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
 		name           string
-		setup          func(t *testing.T, tempDir string) []string
+		pdfs           []string
+		flags          []string
 		fileOutput     string
 		expectError    bool
 		expectedOutput string
 		checkFile      bool
 	}{
 		{
-			name: "Encrypt a PDF file",
-			setup: func(t *testing.T, tempDir string) []string {
-				file1 := "file1.pdf"
-
-				err := createValidPDF(filepath.Join(tempDir, file1))
-				if err != nil {
-					t.Fatalf("failed to create file1.pdf: %v", err)
-				}
-				return []string{"encrypt", file1, "-p", "test"}
-			},
+			name:           "Encrypt a PDF file",
+			pdfs:           []string{"file1.pdf"},
+			flags:          []string{encrypt, "file1.pdf", "-p", "test"},
 			fileOutput:     "encrypted-file1.pdf",
 			expectError:    false,
 			expectedOutput: "PDF file encrypted successfully to:",
 			checkFile:      true,
 		},
 		{
-			name: "Encrypt multiple PDF files",
-			setup: func(t *testing.T, tempDir string) []string {
-				file1 := "file1.pdf"
-				file2 := "file2.pdf"
-				file3 := "file3.pdf"
-
-				err := createValidPDF(filepath.Join(tempDir, file1))
-				if err != nil {
-					t.Fatalf("failed to create file1.pdf: %v", err)
-				}
-				err = createValidPDF(filepath.Join(tempDir, file2))
-				if err != nil {
-					t.Fatalf("failed to create file2.pdf: %v", err)
-				}
-				err = createValidPDF(filepath.Join(tempDir, file3))
-				if err != nil {
-					t.Fatalf("failed to create file3.pdf: %v", err)
-				}
-				return []string{"encrypt", file1, file2, file3, "-p", "test"}
-			},
+			name:           "Encrypt multiple PDF files",
+			pdfs:           []string{"file1.pdf", "file2.pdf", "file3.pdf"},
+			flags:          []string{encrypt, "file1.pdf", "file2.pdf", "file3.pdf", "-p", "test"},
 			fileOutput:     "encrypted-file1.pdf",
 			expectError:    false,
 			expectedOutput: "PDF file encrypted successfully to:",
 			checkFile:      true,
 		},
 		{
-			name: "Provide a flag with no password",
-			setup: func(t *testing.T, tempDir string) []string {
-				file1 := "file1.pdf"
-
-				err := createValidPDF(filepath.Join(tempDir, file1))
-				if err != nil {
-					t.Fatalf("failed to create file1.pdf: %v", err)
-				}
-				return []string{"encrypt", file1, "-p"}
-			},
+			name:           "Provide a flag with no password",
+			pdfs:           nil,
+			flags:          []string{encrypt, "file1.pdf", "-p"},
 			fileOutput:     "",
 			expectError:    true,
 			expectedOutput: "flag needs an argument:",
+			checkFile:      false,
+		},
+		{
+			name:           "Check if files are available",
+			pdfs:           nil,
+			flags:          []string{encrypt, "file1.pdf", "-p", "test"},
+			fileOutput:     "",
+			expectError:    false,
+			expectedOutput: "no such file or directory",
 			checkFile:      false,
 		},
 	}
@@ -86,7 +64,8 @@ func TestEncryptCommand(t *testing.T) {
 			err := os.Chdir(tempDir)
 			assert.NoError(t, err, "failed to change directory: ", tempDir)
 
-			args := tt.setup(t, tempDir)
+			createTestFiles(t, tempDir, tt.pdfs)
+			args := tt.flags
 
 			var outputBuf bytes.Buffer
 
