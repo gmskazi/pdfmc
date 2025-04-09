@@ -13,6 +13,7 @@ import (
 const (
 	merge   = "merge"
 	encrypt = "encrypt"
+	decrypt = "decrypt"
 )
 
 var name string

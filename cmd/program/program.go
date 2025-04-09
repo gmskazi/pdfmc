@@ -74,7 +74,7 @@ func (p *Program) getPassword() error {
 	return nil
 }
 
-func (p *Program) processEncryptedPDFs(pdfProcessor *pdf.PDFProcessor, selectedPdfs []string, dir, saveDir, pword string) error {
+func (p *Program) processEncryptPDFs(pdfProcessor *pdf.PDFProcessor, selectedPdfs []string, dir, saveDir, pword string) error {
 	for _, pdf := range selectedPdfs {
 		encryptedPdf, err := pdfProcessor.EncryptPdf(pdf, dir, pword)
 		if err != nil {
@@ -91,6 +91,19 @@ func (p *Program) processEncryptedPDFs(pdfProcessor *pdf.PDFProcessor, selectedP
 			complete := fmt.Sprintf("PDF file encrypted successfully to: %s/%s", saveDir, encryptedPdf)
 			p.cmd.Println(styles.SelectedStyle.Render(complete))
 		}
+	}
+	return nil
+}
+
+func (p *Program) processDecryptPDFs(pdfProcessor *pdf.PDFProcessor, selectedPdfs []string, dir, saveDir, pword string) error {
+	for _, pdf := range selectedPdfs {
+		encryptedPdf, err := pdfProcessor.DecryptPdf(pdf, dir, pword)
+		if err != nil {
+			return err
+		}
+
+		complete := fmt.Sprintf("PDF file decrypted successfully to: %s/%s", saveDir, encryptedPdf)
+		p.cmd.Println(styles.SelectedStyle.Render(complete))
 	}
 	return nil
 }
@@ -133,7 +146,7 @@ func (p *Program) ExecuteEncrypt() error {
 		return err
 	}
 
-	if err := p.processEncryptedPDFs(pdfProcessor, selectedPdfs, dir, saveDir, p.pword); err != nil {
+	if err := p.processEncryptPDFs(pdfProcessor, selectedPdfs, dir, saveDir, p.pword); err != nil {
 		return err
 	}
 	return nil
@@ -208,7 +221,7 @@ func (p *Program) ExecuteMerge() error {
 	// encrypt pdf file if flag is set
 	if p.pword != "" {
 		nonEncryptedFile := p.name
-		if err := p.processEncryptedPDFs(pdfProcessor, []string{nonEncryptedFile}, saveDir, saveDir, p.pword); err != nil {
+		if err := p.processEncryptPDFs(pdfProcessor, []string{nonEncryptedFile}, saveDir, saveDir, p.pword); err != nil {
 			return err
 		}
 	} else {
@@ -216,5 +229,49 @@ func (p *Program) ExecuteMerge() error {
 		p.cmd.Println(styles.InfoStyle.Render(complete))
 	}
 
+	return nil
+}
+
+func (p *Program) ExecuteDecrypt() error {
+	var (
+		selectedPdfs []string
+		quit         bool
+		err          error
+	)
+
+	f := utils.NewFileUtils(p.args)
+	pdfProcessor := pdf.NewPDFProcessor(p.logo)
+
+	pdfs, dir, err := f.CheckProvidedArgs()
+	if err != nil {
+		return err
+	}
+
+	if f.Interactive {
+		selectedPdfs, quit, err = multiSelect.MultiSelectInteractive(pdfs, dir, p.logo)
+		if err != nil || quit {
+			return err
+		}
+
+		if len(selectedPdfs) == 0 {
+			p.cmd.Println(styles.InfoStyle.Render("No PDFs were selected. Exiting."))
+			return err
+		}
+	} else {
+		selectedPdfs = pdfs
+	}
+
+	if err := p.getPassword(); err != nil {
+		return err
+	}
+
+	saveDir, err := f.GetCurrentWorkingDir()
+	if err != nil {
+		return err
+	}
+
+	if err := p.processDecryptPDFs(pdfProcessor, selectedPdfs, dir, saveDir, p.pword); err != nil {
+		return err
+	}
 	return nil
 }
