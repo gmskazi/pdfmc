@@ -27,6 +27,7 @@ var decryptCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(decryptCmd)
 
+	decryptCmd.Flags().StringP("password", "p", "", "Password to decrypt the PDF files.")
 	// autocomplete for files
 	decryptCmd.ValidArgsFunction = autocomplete.GetSuggestions
 
