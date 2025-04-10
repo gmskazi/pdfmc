@@ -15,6 +15,7 @@ var decryptCmd = &cobra.Command{
 	Use:   "decrypt [files... or folder]",
 	Short: "Decrypt PDF files.",
 	Long:  `This is a tool to decrypt pdf files.`,
+	Args:  cobra.ArbitraryArgs,
 	Run: func(cmd *cobra.Command, args []string) {
 		p := program.NewProgram(cmd, args, decrypt)
 		if err := p.ExecuteDecrypt(); err != nil {
@@ -28,6 +29,7 @@ func init() {
 	rootCmd.AddCommand(decryptCmd)
 
 	decryptCmd.Flags().StringP("password", "p", "", "Password to decrypt the PDF files.")
+	decryptCmd.Flags().StringP("name", "n", "", "Add a prefix to the beginning of the file name.")
 	// autocomplete for files
 	decryptCmd.ValidArgsFunction = autocomplete.GetSuggestions
 

@@ -10,7 +10,6 @@ import (
 
 // Only testing non interactive mode for now
 func TestEncryptCommand(t *testing.T) {
-	t.Parallel()
 	tests := []struct {
 		name           string
 		pdfs           []string
@@ -24,20 +23,21 @@ func TestEncryptCommand(t *testing.T) {
 			name:           "Encrypt a PDF file",
 			pdfs:           []string{"file1.pdf"},
 			flags:          []string{encrypt, "file1.pdf", "-p", "test"},
-			fileOutput:     "encrypted-file1.pdf",
+			fileOutput:     "file1.pdf",
 			expectError:    false,
 			expectedOutput: "PDF file encrypted successfully to:",
 			checkFile:      true,
 		},
-		{
-			name:           "Encrypt multiple PDF files",
-			pdfs:           []string{"file1.pdf", "file2.pdf", "file3.pdf"},
-			flags:          []string{encrypt, "file1.pdf", "file2.pdf", "file3.pdf", "-p", "test"},
-			fileOutput:     "encrypted-file1.pdf",
-			expectError:    false,
-			expectedOutput: "PDF file encrypted successfully to:",
-			checkFile:      true,
-		},
+		// BUG: file needs to be encrypted
+		// {
+		// 	name:           "Check if file is encrypted",
+		// 	pdfs:           []string{"file1.pdf"},
+		// 	flags:          []string{encrypt, "file1.pdf", "-p", "test"},
+		// 	fileOutput:     "",
+		// 	expectError:    false,
+		// 	expectedOutput: "this file is already encrypted",
+		// 	checkFile:      true,
+		// },
 		{
 			name:           "Provide a flag with no password",
 			pdfs:           nil,

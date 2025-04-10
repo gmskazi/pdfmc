@@ -86,7 +86,7 @@ func TestMergeCommand(t *testing.T) {
 			name:           "Merge two PDF files with custom filename and password",
 			pdfs:           []string{file1, file2},
 			flags:          []string{merge, file1, file2, "-n", "testname", "-p", "test"},
-			fileOutput:     "encrypted-testname.pdf",
+			fileOutput:     "testname.pdf",
 			expectError:    false,
 			expectedOutput: "PDF files merged and encrypted successfully to:",
 			checkFile:      true,

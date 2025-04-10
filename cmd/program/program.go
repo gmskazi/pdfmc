@@ -3,8 +3,6 @@ package program
 import (
 	"errors"
 	"fmt"
-	"os"
-	"path/filepath"
 
 	"github.com/gmskazi/pdfmc/cmd/pdf"
 	"github.com/gmskazi/pdfmc/cmd/styles"
@@ -20,19 +18,18 @@ type Program struct {
 	cmd   *cobra.Command
 	args  []string
 	logo  string
+	name  string
 	pword string
 	MergeFlags
 }
 
 type MergeFlags struct {
-	name    string
 	reorder bool
 	encrypt bool
 }
 
 func NewProgram(cmd *cobra.Command, args []string, logo string) *Program {
 	mergeFlags := MergeFlags{
-		name:    getFlagValue(cmd.Flag("name")),
 		reorder: getFlagBoolValue(cmd, "order"),
 		encrypt: getFlagBoolValue(cmd, "encrypt"),
 	}
@@ -41,6 +38,7 @@ func NewProgram(cmd *cobra.Command, args []string, logo string) *Program {
 		cmd:        cmd,
 		args:       args,
 		logo:       logo,
+		name:       getFlagValue(cmd.Flag("name")),
 		pword:      getFlagValue(cmd.Flag("password")),
 		MergeFlags: mergeFlags,
 	}
@@ -76,15 +74,15 @@ func (p *Program) getPassword() error {
 
 func (p *Program) processEncryptPDFs(pdfProcessor *pdf.PDFProcessor, selectedPdfs []string, dir, saveDir, pword string) error {
 	for _, pdf := range selectedPdfs {
-		encryptedPdf, err := pdfProcessor.EncryptPdf(pdf, dir, pword)
+		encryptedPdf, err := pdfProcessor.EncryptPdf(pdf, dir, pword, p.name)
 		if err != nil {
 			return err
 		}
 
 		if p.logo == "merge" {
-			if err := os.Remove(filepath.Join(saveDir, pdf)); err != nil {
-				return err
-			}
+			// if err := os.Remove(filepath.Join(saveDir, pdf)); err != nil {
+			// 	return err
+			// }
 			complete := fmt.Sprintf("PDF files merged and encrypted successfully to: %s/%s", saveDir, encryptedPdf)
 			p.cmd.Println(styles.SelectedStyle.Render(complete))
 		} else {
@@ -97,7 +95,7 @@ func (p *Program) processEncryptPDFs(pdfProcessor *pdf.PDFProcessor, selectedPdf
 
 func (p *Program) processDecryptPDFs(pdfProcessor *pdf.PDFProcessor, selectedPdfs []string, dir, saveDir, pword string) error {
 	for _, pdf := range selectedPdfs {
-		encryptedPdf, err := pdfProcessor.DecryptPdf(pdf, dir, pword)
+		encryptedPdf, err := pdfProcessor.DecryptPdf(pdf, dir, pword, p.name)
 		if err != nil {
 			return err
 		}

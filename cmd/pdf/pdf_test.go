@@ -115,6 +115,7 @@ func TestEncryptPdf(t *testing.T) {
 	tests := []struct {
 		name         string
 		pdf          string
+		pdfPrefix    string
 		password     string
 		expectedFile string
 		expectedErr  bool
@@ -123,8 +124,9 @@ func TestEncryptPdf(t *testing.T) {
 		{
 			name:         "successful encryption",
 			pdf:          "test.pdf",
+			pdfPrefix:    "",
 			password:     "test",
-			expectedFile: "encrypted-test.pdf",
+			expectedFile: "test.pdf",
 			expectedErr:  false,
 			setupFile:    []string{"test.pdf"},
 		},
@@ -138,7 +140,7 @@ func TestEncryptPdf(t *testing.T) {
 			createTestFiles(t, tempDir, tt.setupFile)
 
 			processor := NewPDFProcessor(encrypt)
-			encryptedPdf, err := processor.EncryptPdf(tt.pdf, tempDir, tt.password)
+			encryptedPdf, err := processor.EncryptPdf(tt.pdf, tempDir, tt.password, tt.pdfPrefix)
 			fmt.Println(err)
 			if tt.expectedErr {
 				assert.Error(t, err, "Expected an error but command ran successfully")

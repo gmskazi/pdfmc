@@ -41,27 +41,37 @@ func (p *PDFProcessor) MergePdfs(pdfs []string, outputPdf string) (string, error
 	return output, nil
 }
 
-func (p *PDFProcessor) EncryptPdf(pdf, dir, password string) (string, error) {
+func (p *PDFProcessor) EncryptPdf(pdf, dir, password, prefix string) (string, error) {
+	var encryptedPdfName string
 	conf := model.NewAESConfiguration(password, password, 256)
-	encryptedPdfName := "encrypted-" + pdf
+	if prefix != "" {
+		encryptedPdfName = prefix + pdf
+	} else {
+		encryptedPdfName = pdf
+	}
 
-	err := api.EncryptFile(filepath.Join(dir, pdf), encryptedPdfName, conf)
+	err := api.EncryptFile(filepath.Join(dir, pdf), "", conf)
 	if err != nil {
 		return "", err
 	}
 
-	err = api.ValidateFile(encryptedPdfName, conf)
+	err = api.ValidateFile(pdf, conf)
 	if err != nil {
-		return "", err
+		return encryptedPdfName, err
 	}
 	return encryptedPdfName, nil
 }
 
-func (p *PDFProcessor) DecryptPdf(pdf, dir, password string) (string, error) {
+func (p *PDFProcessor) DecryptPdf(pdf, dir, password, prefix string) (string, error) {
+	var decryptedPdfName string
 	conf := model.NewAESConfiguration(password, password, 256)
-	decryptedPdfName := "decrypted-" + pdf
+	if prefix != "" {
+		decryptedPdfName = prefix + pdf
+	} else {
+		decryptedPdfName = pdf
+	}
 
-	err := api.DecryptFile(filepath.Join(dir, pdf), decryptedPdfName, conf)
+	err := api.DecryptFile(filepath.Join(dir, pdf), "", conf)
 	if err != nil {
 		return "", err
 	}

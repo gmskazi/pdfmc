@@ -72,7 +72,11 @@ func (m Tmodel) Init() tea.Cmd {
 		return func() tea.Msg {
 			return autoQuitMsg{}
 		}
-	} else if m.logo == encrypt || m.logo == decrypt && len(m.pdfs) == 0 {
+	} else if m.logo == encrypt && len(m.pdfs) == 0 {
+		return func() tea.Msg {
+			return autoQuitMsg{}
+		}
+	} else if m.logo == decrypt && len(m.pdfs) == 0 {
 		return func() tea.Msg {
 			return autoQuitMsg{}
 		}

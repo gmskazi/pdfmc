@@ -30,9 +30,9 @@ func TestNewProgram(t *testing.T) {
 				cmd:   &cobra.Command{},
 				args:  []string{},
 				logo:  "merge",
+				name:  "",
 				pword: "",
 				MergeFlags: MergeFlags{
-					name:    "",
 					reorder: false,
 					encrypt: false,
 				},
@@ -65,9 +65,9 @@ func TestNewProgram(t *testing.T) {
 				cmd:   &cobra.Command{},
 				args:  []string{"file1.pdf", "file2.pdf"},
 				logo:  "merge",
+				name:  "testName",
 				pword: "testPassword",
 				MergeFlags: MergeFlags{
-					name:    "testName",
 					reorder: true,
 					encrypt: true,
 				},
@@ -98,9 +98,9 @@ func TestNewProgram(t *testing.T) {
 				cmd:   &cobra.Command{},
 				args:  []string{"file1.pdf", "file2.pdf"},
 				logo:  "merge",
+				name:  "testName",
 				pword: "",
 				MergeFlags: MergeFlags{
-					name:    "testName",
 					reorder: true,
 					encrypt: false,
 				},

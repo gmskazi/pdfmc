@@ -29,6 +29,7 @@ func init() {
 	rootCmd.AddCommand(encryptCmd)
 
 	encryptCmd.Flags().StringP("password", "p", "", "Password to encrypt the PDF files.")
+	encryptCmd.Flags().StringP("name", "n", "", "Add a prefix to the beginning of the file name.")
 
 	// autocomplete for files flag
 	mergeCmd.ValidArgsFunction = autocomplete.GetSuggestions
