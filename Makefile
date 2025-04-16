@@ -5,8 +5,6 @@ all: build
 
 build:
 	@echo "Building..."
-	
-	
 	@go build .
 
 # Run the application
@@ -44,5 +42,12 @@ clean:
 		sudo rm /usr/local/bin/pdfmc
 	fi
 
+gif: install
+	@echo "Recreating the Gifs..."
+	@cd public && vhs merge.tape
+	@cd public && vhs encrypt.tape
+	@cd public && vhs completions.tape
+	@cd public && vhs decrypt.tape
 
-.PHONY: all build install run test coverage linting clean
+
+.PHONY: all build install run test coverage linting clean gif

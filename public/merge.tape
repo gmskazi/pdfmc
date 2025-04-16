@@ -63,7 +63,7 @@ Require pdfmc
 
 Set Shell zsh
 Hide
-Type "source ~/.zshrc"
+#Type "source ~/.zshrc"
 Enter
 
 Type "cd ~/pdfDemo/"
