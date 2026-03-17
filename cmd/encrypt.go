@@ -32,7 +32,7 @@ func init() {
 	encryptCmd.Flags().StringP("name", "n", "", "Add a prefix to the beginning of the file name.")
 
 	// autocomplete for files flag
-	mergeCmd.ValidArgsFunction = autocomplete.GetSuggestions
+	encryptCmd.ValidArgsFunction = autocomplete.GetSuggestions
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command

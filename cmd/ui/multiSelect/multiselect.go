@@ -2,10 +2,12 @@ package multiSelect
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
+
+	"github.com/gmskazi/pdfmc/cmd/styles"
 )
 
 const (
@@ -38,10 +40,10 @@ const (
 )
 
 var (
-	defaultStyle  = lipgloss.NewStyle().PaddingLeft(1).Foreground(lipgloss.Color("#5dd2fc")).Bold(true)
-	focusedStyle  = lipgloss.NewStyle().PaddingLeft(1).Foreground(lipgloss.Color("#FCBD5F")).Bold(true)
-	selectedStyle = lipgloss.NewStyle().PaddingLeft(1).Foreground(lipgloss.Color("#FC895F")).Bold(true)
-	errorStyle    = lipgloss.NewStyle().PaddingLeft(1).Foreground(lipgloss.Color("#ba0b0b")).Bold(true)
+	defaultStyle  = styles.DefaultStyle
+	focusedStyle  = styles.FocusedStyle
+	selectedStyle = styles.SelectedStyle
+	errorStyle    = styles.ErrorStyle
 )
 
 type Tmodel struct {
@@ -85,9 +87,14 @@ func (m Tmodel) Init() tea.Cmd {
 }
 
 func (m Tmodel) GetSelectedPDFs() []string {
-	var selected []string
-
+	var indices []int
 	for i := range m.selected {
+		indices = append(indices, i)
+	}
+	sort.Ints(indices)
+
+	var selected []string
+	for _, i := range indices {
 		selected = append(selected, m.pdfs[i])
 	}
 	return selected

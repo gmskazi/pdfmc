@@ -5,49 +5,9 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/gmskazi/pdfmc/cmd/testhelpers"
 	"github.com/stretchr/testify/assert"
 )
-
-func createValidPDF(filepath string) error {
-	// Create a minimal valid PDF file
-	content := `%PDF-1.4
-1 0 obj
-<< /Type /Catalog /Pages 2 0 R >>
-endobj
-2 0 obj
-<< /Type /Pages /Kids [3 0 R] /Count 1 >>
-endobj
-3 0 obj
-<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] >>
-endobj
-xref
-0 4
-0000000000 65535 f 
-0000000010 00000 n 
-0000000053 00000 n 
-0000000102 00000 n 
-trailer
-<< /Root 1 0 R /Size 4 >>
-startxref
-150
-%%EOF`
-	return os.WriteFile(filepath, []byte(content), 0644)
-}
-
-func createTestFiles(t *testing.T, tempDir string, pdfs []string) {
-	// Create test files
-	for _, f := range pdfs {
-		fullPath := filepath.Join(tempDir, f)
-		if err := createValidPDF(fullPath); err != nil {
-			assert.NoError(t, err, "failed to create test file: ", f)
-		}
-	}
-	// Create a subdirectory
-	subDir := "subdir"
-	if err := os.Mkdir(filepath.Join(tempDir, subDir), 0755); err != nil {
-		assert.NoError(t, err, "failed to create subdir: ", subDir)
-	}
-}
 
 func TestIsDirectory(t *testing.T) {
 	tempDir := t.TempDir()
@@ -113,7 +73,7 @@ func TestReadDirectory(t *testing.T) {
 	tempDir := t.TempDir()
 	err := os.Chdir(tempDir)
 	assert.NoError(t, err, "failed to change directory: ", tempDir)
-	createTestFiles(t, tempDir, []string{"file1.pdf", "file2.pdf"})
+	testhelpers.CreateTestFiles(t, tempDir, []string{"file1.pdf", "file2.pdf"})
 
 	f := NewFileUtils(nil)
 	entries, err := f.ReadDirectory(tempDir)
@@ -132,7 +92,7 @@ func TestReadDirectory(t *testing.T) {
 
 func TestFilterPdfFiles(t *testing.T) {
 	tempDir := t.TempDir()
-	createTestFiles(t, tempDir, []string{"file1.pdf", "file2.pdf", "file3.txt"})
+	testhelpers.CreateTestFiles(t, tempDir, []string{"file1.pdf", "file2.pdf", "file3.txt"})
 
 	f := NewFileUtils(nil)
 	entries, _ := f.ReadDirectory(tempDir)
@@ -172,7 +132,7 @@ func TestGetPdfFilesFromDir(t *testing.T) {
 			tempDir := t.TempDir()
 			err := os.Chdir(tempDir)
 			assert.NoError(t, err, "failed to change directory: ", tempDir)
-			createTestFiles(t, tempDir, tt.pdfs)
+			testhelpers.CreateTestFiles(t, tempDir, tt.pdfs)
 
 			f := NewFileUtils(nil)
 			var pdfFiles []string
@@ -220,9 +180,9 @@ func TestCheckProvidedArgs(t *testing.T) {
 			setup: func(tempDir string) {
 				file1 := filepath.Join(tempDir, "file1.pdf")
 				file2 := filepath.Join(tempDir, "file2.pdf")
-				err := createValidPDF(file1)
+				err := testhelpers.CreateValidPDF(file1)
 				assert.NoError(t, err)
-				err = createValidPDF(file2)
+				err = testhelpers.CreateValidPDF(file2)
 				assert.NoError(t, err)
 			},
 			args:                []string{},
@@ -236,7 +196,7 @@ func TestCheckProvidedArgs(t *testing.T) {
 				err := os.Mkdir(filepath.Join(tempDir, "test"), 0755)
 				assert.NoError(t, err)
 				file1 := filepath.Join(filepath.Join(tempDir, "test"), "file1.pdf")
-				err = createValidPDF(file1)
+				err = testhelpers.CreateValidPDF(file1)
 				assert.NoError(t, err)
 			},
 			args:                []string{"test"},
@@ -248,7 +208,7 @@ func TestCheckProvidedArgs(t *testing.T) {
 			name: "1 file provided",
 			setup: func(tempDir string) {
 				file1 := filepath.Join(tempDir, "file1.pdf")
-				err := createValidPDF(file1)
+				err := testhelpers.CreateValidPDF(file1)
 				assert.NoError(t, err)
 			},
 			args:                []string{"file1.pdf"},
@@ -269,7 +229,7 @@ func TestCheckProvidedArgs(t *testing.T) {
 			name: "file and directory provided",
 			setup: func(tempDir string) {
 				file1 := filepath.Join(tempDir, "file1.pdf")
-				err := createValidPDF(file1)
+				err := testhelpers.CreateValidPDF(file1)
 				assert.NoError(t, err)
 				err = os.Mkdir(filepath.Join(tempDir, "test"), 0755)
 				assert.NoError(t, err)

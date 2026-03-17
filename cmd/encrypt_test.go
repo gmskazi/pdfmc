@@ -5,6 +5,8 @@ import (
 	"os"
 	"testing"
 
+	"github.com/gmskazi/pdfmc/cmd/pdf"
+	"github.com/gmskazi/pdfmc/cmd/testhelpers"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -76,9 +78,10 @@ func TestEncryptCommand(t *testing.T) {
 			err := os.Chdir(tempDir)
 			assert.NoError(t, err, "failed to change directory: ", tempDir)
 
-			createTestFiles(t, tempDir, tt.pdfs)
+			testhelpers.CreateTestFiles(t, tempDir, tt.pdfs)
 			if tt.encrypt && tt.password != "" {
-				encryptTestFiles(t, tempDir, tt.pdfs, tt.password, "")
+				processor := pdf.NewPDFProcessor(encrypt)
+				testhelpers.EncryptTestFiles(t, tempDir, tt.pdfs, tt.password, "", processor.EncryptPdf)
 			}
 			args := tt.flags
 

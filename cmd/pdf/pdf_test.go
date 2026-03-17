@@ -3,9 +3,9 @@ package pdf
 import (
 	"fmt"
 	"os"
-	"path/filepath"
 	"testing"
 
+	"github.com/gmskazi/pdfmc/cmd/testhelpers"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -14,54 +14,6 @@ const (
 	encrypt = "encrypt"
 	decrypt = "decrypt"
 )
-
-func createValidPDF(filepath string) error {
-	// Create a minimal valid PDF file
-	content := `%PDF-1.4
-1 0 obj
-<< /Type /Catalog /Pages 2 0 R >>
-endobj
-2 0 obj
-<< /Type /Pages /Kids [3 0 R] /Count 1 >>
-endobj
-3 0 obj
-<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] >>
-endobj
-xref
-0 4
-0000000000 65535 f 
-0000000010 00000 n 
-0000000053 00000 n 
-0000000102 00000 n 
-trailer
-<< /Root 1 0 R /Size 4 >>
-startxref
-150
-%%EOF`
-	return os.WriteFile(filepath, []byte(content), 0644)
-}
-
-func createTestFiles(t *testing.T, tempDir string, pdfs []string) {
-	// Create test files
-	for _, f := range pdfs {
-		fullPath := filepath.Join(tempDir, f)
-		err := createValidPDF(fullPath)
-		assert.NoError(t, err, "failed to create test file: ", f)
-	}
-	// Create a subdirectory
-	subDir := "subdir"
-	err := os.Mkdir(filepath.Join(tempDir, subDir), 0755)
-	assert.NoError(t, err, "failed to create subdir: ", subDir)
-}
-
-func encryptTestFiles(t *testing.T, tempdir, pdf, password, pdfPrefix string) {
-	p := NewPDFProcessor(encrypt)
-	// encrypt test files
-	encryptedPdf, err := p.EncryptPdf(pdf, tempdir, password, pdfPrefix)
-	assert.NoError(t, err, "failed to encrypt pdf")
-	// NOTE: This is for debuging
-	fmt.Println(encryptedPdf)
-}
 
 func TestMergePdfs(t *testing.T) {
 	file1 := "file1.pdf"
@@ -107,7 +59,7 @@ func TestMergePdfs(t *testing.T) {
 			err := os.Chdir(tempDir)
 			assert.NoError(t, err, "failed to change directory: ", tempDir)
 
-			createTestFiles(t, tempDir, tt.setupFile)
+			testhelpers.CreateTestFiles(t, tempDir, tt.setupFile)
 			pdfP := NewPDFProcessor(merge)
 			output, err := pdfP.MergePdfs(tt.pdfs, tt.customName)
 
@@ -203,7 +155,7 @@ func TestEncryptPdf(t *testing.T) {
 			tempDir := t.TempDir()
 			err := os.Chdir(tempDir)
 			assert.NoError(t, err, "failed to change directory: %s", tempDir)
-			createTestFiles(t, tempDir, tt.setupFile)
+			testhelpers.CreateTestFiles(t, tempDir, tt.setupFile)
 
 			processor := NewPDFProcessor(encrypt)
 			encryptedPdf, err := processor.EncryptPdf(tt.pdf, tempDir, tt.password, tt.pdfPrefix)
@@ -272,9 +224,10 @@ func TestDecryptPdf(t *testing.T) {
 			tempDir := t.TempDir()
 			err := os.Chdir(tempDir)
 			assert.NoError(t, err, "failed to change directory: %s", tempDir)
-			createTestFiles(t, tempDir, tt.setupFile)
+			testhelpers.CreateTestFiles(t, tempDir, tt.setupFile)
 			if tt.setupFile != nil {
-				encryptTestFiles(t, tempDir, tt.pdf, tt.password, "")
+				processor := NewPDFProcessor(encrypt)
+				testhelpers.EncryptTestFiles(t, tempDir, []string{tt.pdf}, tt.password, "", processor.EncryptPdf)
 			}
 
 			processor := NewPDFProcessor(decrypt)

@@ -2,27 +2,14 @@ package cmd
 
 import (
 	"bytes"
-	"fmt"
 	"os"
 	"testing"
 
 	"github.com/gmskazi/pdfmc/cmd/pdf"
+	"github.com/gmskazi/pdfmc/cmd/testhelpers"
 	"github.com/stretchr/testify/assert"
 )
 
-func encryptTestFiles(t *testing.T, tempdir string, pdfs []string, password, pdfPrefix string) {
-	p := pdf.NewPDFProcessor(encrypt)
-	// encrypt test files
-	for _, f := range pdfs {
-
-		encryptedPdf, err := p.EncryptPdf(f, tempdir, password, pdfPrefix)
-		assert.NoError(t, err, "failed to encrypt pdf")
-		fmt.Println(encryptedPdf)
-
-	}
-}
-
-// Only testing non interactive mode for now
 func TestDecryptCommand(t *testing.T) {
 	tests := []struct {
 		name           string
@@ -102,9 +89,10 @@ func TestDecryptCommand(t *testing.T) {
 			err := os.Chdir(tempDir)
 			assert.NoError(t, err, "failed to change directory: ", tempDir)
 
-			createTestFiles(t, tempDir, tt.pdfs)
+			testhelpers.CreateTestFiles(t, tempDir, tt.pdfs)
 			if tt.encrypt && tt.password != "" {
-				encryptTestFiles(t, tempDir, tt.pdfs, tt.password, tt.pdfPrefix)
+				processor := pdf.NewPDFProcessor(encrypt)
+				testhelpers.EncryptTestFiles(t, tempDir, tt.pdfs, tt.password, tt.pdfPrefix, processor.EncryptPdf)
 			}
 			args := tt.flags
 

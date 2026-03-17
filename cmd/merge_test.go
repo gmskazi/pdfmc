@@ -3,52 +3,11 @@ package cmd
 import (
 	"bytes"
 	"os"
-	"path/filepath"
 	"testing"
 
+	"github.com/gmskazi/pdfmc/cmd/testhelpers"
 	"github.com/stretchr/testify/assert"
 )
-
-func createValidPDF(filepath string) error {
-	// Create a minimal valid PDF file
-	content := `%PDF-1.4
-1 0 obj
-<< /Type /Catalog /Pages 2 0 R >>
-endobj
-2 0 obj
-<< /Type /Pages /Kids [3 0 R] /Count 1 >>
-endobj
-3 0 obj
-<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] >>
-endobj
-xref
-0 4
-0000000000 65535 f 
-0000000010 00000 n 
-0000000053 00000 n 
-0000000102 00000 n 
-trailer
-<< /Root 1 0 R /Size 4 >>
-startxref
-150
-%%EOF`
-	return os.WriteFile(filepath, []byte(content), 0644)
-}
-
-func createTestFiles(t *testing.T, tempDir string, pdfs []string) {
-	// Create test files
-	for _, f := range pdfs {
-		fullPath := filepath.Join(tempDir, f)
-		if err := createValidPDF(fullPath); err != nil {
-			assert.NoError(t, err, "failed to create test file: ", f)
-		}
-	}
-	// Create a subdirectory
-	subDir := "subdir"
-	if err := os.Mkdir(filepath.Join(tempDir, subDir), 0755); err != nil {
-		assert.NoError(t, err, "failed to create subdir: ", subDir)
-	}
-}
 
 // Only testing non interactive mode for now
 func TestMergeCommand(t *testing.T) {
@@ -136,7 +95,7 @@ func TestMergeCommand(t *testing.T) {
 			err := os.Chdir(tempDir)
 			assert.NoError(t, err, "failed to change directory: ", tempDir)
 
-			createTestFiles(t, tempDir, tt.pdfs)
+			testhelpers.CreateTestFiles(t, tempDir, tt.pdfs)
 			args := tt.flags
 
 			var outputBuf bytes.Buffer

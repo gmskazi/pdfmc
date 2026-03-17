@@ -5,7 +5,8 @@ import (
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
+
+	"github.com/gmskazi/pdfmc/cmd/styles"
 )
 
 const logoMerge = `
@@ -17,8 +18,8 @@ const logoMerge = `
 `
 
 var (
-	defaultStyle = lipgloss.NewStyle().PaddingLeft(1).Foreground(lipgloss.Color("#5dd2fc")).Bold(true)
-	focusedStyle = lipgloss.NewStyle().PaddingLeft(1).Foreground(lipgloss.Color("#FCBD5F")).Bold(true)
+	defaultStyle = styles.DefaultStyle
+	focusedStyle = styles.FocusedStyle
 )
 
 type Tmodel struct {

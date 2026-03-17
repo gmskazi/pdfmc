@@ -7,18 +7,11 @@ import (
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+
+	"github.com/gmskazi/pdfmc/cmd/styles"
 )
 
-var (
-	defaultStyle  = lipgloss.NewStyle().PaddingLeft(1).Foreground(lipgloss.Color("#5dd2fc")).Bold(true)
-	focusedStyle  = lipgloss.NewStyle().PaddingLeft(1).Foreground(lipgloss.Color("#FCBD5F")).Bold(true)
-	errorStyle    = lipgloss.NewStyle().PaddingLeft(1).Foreground(lipgloss.Color("#ba0b0b")).Bold(true)
-	selectedStyle = lipgloss.NewStyle().PaddingLeft(1).Foreground(lipgloss.Color("#FC895F")).Bold(true)
-	noStyle       = lipgloss.NewStyle()
-	blurredStyle  = lipgloss.NewStyle().Foreground(lipgloss.Color("240"))
-	focusedButton = selectedStyle.Render("[ Submit ]")
-	blurredButton = fmt.Sprintf("[ %s ]", blurredStyle.Render("Submit"))
-)
+var noStyle = lipgloss.NewStyle()
 
 type Tmodel struct {
 	focusIndex int
@@ -34,7 +27,7 @@ func TextinputModel() Tmodel {
 	var t textinput.Model
 	for i := range m.inputs {
 		t = textinput.New()
-		t.Cursor.Style = defaultStyle
+		t.Cursor.Style = styles.DefaultStyle
 		t.CharLimit = 32
 
 		switch i {
@@ -99,19 +92,19 @@ func (m Tmodel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				if i == m.focusIndex {
 					// set focus state
 					cmds[i] = m.inputs[i].Focus()
-					m.inputs[i].PromptStyle = selectedStyle
-					m.inputs[i].TextStyle = selectedStyle
+					m.inputs[i].PromptStyle = styles.SelectedStyle
+					m.inputs[i].TextStyle = styles.SelectedStyle
 					continue
 				}
 
 				if m.checkPasswords(m.inputs[0].Value(), m.inputs[1].Value()) {
 					m.inputs[i].Blur()
 					m.inputs[i].PromptStyle = noStyle
-					m.inputs[i].TextStyle = selectedStyle
+					m.inputs[i].TextStyle = styles.SelectedStyle
 				} else {
 					m.inputs[i].Blur()
 					m.inputs[i].PromptStyle = noStyle
-					m.inputs[i].TextStyle = errorStyle
+					m.inputs[i].TextStyle = styles.ErrorStyle
 				}
 			}
 
@@ -134,7 +127,7 @@ func (m Tmodel) updateInputs(msg tea.Msg) tea.Cmd {
 
 func (m Tmodel) View() string {
 	var b strings.Builder
-	b.WriteString(defaultStyle.Render("Input the password to encrypt the PDFs."))
+	b.WriteString(styles.DefaultStyle.Render("Input the password to encrypt the PDFs."))
 	fmt.Fprint(&b, "\n\n")
 
 	for i := range m.inputs {
@@ -144,16 +137,16 @@ func (m Tmodel) View() string {
 		}
 	}
 
-	button := &blurredButton
+	button := &styles.BlurredButton
 	if m.focusIndex == len(m.inputs) {
-		button = &focusedButton
+		button = &styles.FocusedButton
 	}
 	fmt.Fprintf(&b, "\n\n%s\n\n", *button)
 
-	b.WriteString(focusedStyle.Render("Press Enter on 'Submit' to continue"))
+	b.WriteString(styles.FocusedStyle.Render("Press Enter on 'Submit' to continue"))
 	fmt.Fprint(&b, "\n")
 
-	b.WriteString(focusedStyle.Render("To Exit press 'ctrl+c' or 'esc'"))
+	b.WriteString(styles.FocusedStyle.Render("To Exit press 'ctrl+c' or 'esc'"))
 	fmt.Fprint(&b, "\n")
 
 	return b.String()
